@@ -1,0 +1,17 @@
+{
+  "name": "Carcassonne Scorekeeper",
+  "short_name": "Carcassonne",
+  "description": "Score Carcassonne games with any mix of expansions. Works offline.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E4D9BC",
+  "theme_color": "#EFE7D0",
+  "lang": "en-GB",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

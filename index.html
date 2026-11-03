@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carcassonne Scorekeeper</title>
+<meta name="description" content="Score Carcassonne games with any mix of expansions. Works offline.">
+<meta name="theme-color" content="#EFE7D0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Carcassonne">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="vendor/fonts/work-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script src="vendor/xlsx.full.min.js" defer></script>
+<style>
+  @font-face{font-family:'Fraunces'; font-style:normal; font-weight:100 900; font-display:swap; src:url(vendor/fonts/fraunces-latin-wght-normal.woff2) format('woff2');}
+  @font-face{font-family:'Work Sans'; font-style:normal; font-weight:100 900; font-display:swap; src:url(vendor/fonts/work-sans-latin-wght-normal.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+  @font-face{font-family:'Work Sans'; font-style:normal; font-weight:100 900; font-display:swap; src:url(vendor/fonts/work-sans-latin-ext-wght-normal.woff2) format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
+  :root{
+    color-scheme:light;
+    --parchment:#E4D9BC; --card-bg:#EFE7D0; --ink:#2A2820; --ink-soft:#5A5644;
+    --road:#7C7A6D; --city:#B5503A; --monastery:#3E5D45; --field:#8C9B52; --expansion:#B8862F;
+    --line:rgba(42,40,32,0.18); --tile-bg:#F7F3E7;
+  }
+  *{box-sizing:border-box;}
+  html{height:100%;}
+  body{
+    margin:0; height:100dvh; display:flex; flex-direction:column; overflow:hidden;
+    font-family:'Work Sans',system-ui,sans-serif; color:var(--ink);
+    background-color:var(--parchment);
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:34px 34px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  button{font-family:inherit; touch-action:manipulation; -webkit-user-select:none; user-select:none;}
+
+  /* Header + tabs */
+  .top{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:8px 16px; background:var(--card-bg); border-bottom:1px solid var(--line); flex:0 0 auto;
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .hero-tiles{display:flex;}
+  .hero-tiles span{width:14px;height:14px;margin-left:-4px;display:inline-block;border:1.5px solid var(--ink);}
+  .hero-tiles span:nth-child(1){background:var(--city);}
+  .hero-tiles span:nth-child(2){background:var(--road);}
+  .hero-tiles span:nth-child(3){background:var(--monastery);}
+  .hero-tiles span:nth-child(4){background:var(--field);}
+  h1{font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:1.2rem; margin:0;}
+  .tabs{display:flex; gap:6px;}
+  .tab{padding:10px 18px; border:1.5px solid var(--ink); background:transparent; color:var(--ink); font-weight:600; font-size:.95rem; cursor:pointer;}
+  .tab.active{background:var(--ink); color:var(--parchment);}
+
+  main{flex:1 1 auto; min-height:0; display:flex; flex-direction:column; padding:12px 16px;}
+  .tabpane{display:none; flex:1 1 auto; min-height:0;}
+  #tab-setup.active{display:block; overflow:auto;}
+  #tab-game.active{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr); gap:12px;}
+
+  /* Shared */
+  .card{background:var(--card-bg); border:1px solid var(--line); padding:14px; min-height:0;}
+  .card h2{font-family:'Fraunces',Georgia,serif; font-size:1rem; font-weight:600; margin:0 0 10px; display:flex; align-items:center; gap:8px;}
+  .card h2::before{content:''; width:8px; height:8px; background:var(--ink); display:inline-block; transform:rotate(45deg);}
+  .card-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .card-head h2{margin:0;}
+  .btn{padding:10px 16px; border:1.5px solid var(--ink); background:var(--ink); color:var(--parchment); font-weight:600; font-size:.9rem; cursor:pointer;}
+  .btn.secondary{background:transparent; color:var(--ink);}
+  .btn.small{padding:7px 11px; font-size:.8rem;}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+  .meeple{width:24px; height:24px; flex-shrink:0; object-fit:contain; vertical-align:middle;}
+  .cat-icon{width:20px; height:20px; flex-shrink:0; object-fit:contain;}
+  .empty{color:var(--ink-soft); font-size:.88rem; font-style:italic; margin:0;}
+
+  /* Setup tab */
+  .setup-wrap{max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:12px;}
+  .player-list{list-style:none; margin:0 0 12px; padding:0; display:flex; flex-direction:column; gap:6px;}
+  .player-item{display:flex; align-items:center; gap:10px; padding:6px 6px 6px 10px; background:#fff; border:1px solid var(--line); font-weight:600;}
+  .player-item .num{width:22px; height:22px; background:var(--ink); color:var(--parchment); font-size:.8rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .player-item .rm{margin-left:auto; border:none; background:none; font-size:1.1rem; cursor:pointer; color:var(--ink-soft); padding:8px 12px;}
+  .add-player{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .add-player input{flex:1; min-width:140px; padding:11px 12px; border:1px solid var(--line); background:#fff; font:inherit; font-size:1rem;}
+  .add-player input{color:var(--ink-soft); -webkit-text-fill-color:var(--ink-soft); caret-color:var(--ink);}
+  .add-player input::placeholder{color:var(--road); -webkit-text-fill-color:var(--road); opacity:1;}
+  .color-picks{display:flex; gap:8px;}
+  .color-pick{width:42px; height:42px; padding:2px; border:2px solid transparent; cursor:pointer;}
+  .color-pick .meeple{width:100%; height:100%;}
+  .color-pick.selected{border-color:var(--ink);}
+  .color-pick.taken{opacity:.2; cursor:not-allowed;}
+  .exp-group{margin-top:14px;}
+  .exp-group-head{display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:6px;}
+  .exp-group-head h3{margin:0; font-family:'Fraunces',Georgia,serif; font-size:.92rem; font-weight:600; flex:1;}
+  .exp-group-head .count{font-size:.78rem; color:var(--ink-soft);}
+  .exp-grid{columns:340px; column-gap:24px;}
+  .exp-item{display:flex; align-items:center; gap:10px; min-height:38px; font-size:.9rem; cursor:pointer;}
+  .exp-item input{-webkit-appearance:none; appearance:none; width:20px; height:20px; margin:0; flex-shrink:0; display:grid; place-content:center; background:#fff; border:1.5px solid var(--ink); border-radius:0; cursor:pointer;}
+  .exp-item input:checked{background:var(--ink);}
+  .exp-item input:checked::after{content:''; width:5px; height:10px; border:solid var(--parchment); border-width:0 2px 2px 0; transform:translateY(-1px) rotate(45deg);}
+  .exp-item input:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  .setup-footer{position:sticky; bottom:0; display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:10px 14px; background:var(--card-bg); border:1px solid var(--line); box-shadow:0 -2px 0 var(--line);}
+  .setup-footer .info{flex:1; font-size:.85rem; color:var(--ink-soft);}
+
+  .exp-name{min-width:0;}
+  .exp-item{min-width:0; break-inside:avoid; margin-bottom:2px;}
+  .exp-tiles{margin-left:-2px; display:inline-flex; align-items:center; flex-shrink:0; font-size:.8rem;}
+  .exp-tiles .tile-mark:last-child{margin-right:0;}
+  .tile-mark{display:inline-flex; align-items:center; gap:3px; margin-right:9px; font-weight:600; color:var(--ink-soft); white-space:nowrap;}
+  .tile-mark img{width:16px; height:16px; object-fit:contain;}
+  .tile-sum .tile-mark{color:var(--ink); font-size:.92rem;}
+  .tile-sum .tile-mark img{width:20px; height:20px;}
+  .rule-item .exp-icon{width:24px; height:24px;}
+  .tile-sum{flex:1 1 100%; font-size:.85rem; color:var(--ink-soft);}
+  .tile-sum strong{color:var(--ink); margin-right:6px;}
+  .tile-sum b{color:var(--ink);}
+  .score-tiles{margin:10px 0 0; font-size:.76rem;}
+  .score-tiles{display:flex; flex-wrap:wrap; align-items:center; gap:4px 0;}
+  .score-tiles strong{margin-right:10px;}
+  .tile-part{display:inline-flex; align-items:center; gap:4px; margin-right:9px; white-space:nowrap;}
+  .tile-part .tile-mark{margin-right:0;}
+  .exp-icon{width:24px; height:24px; flex-shrink:0; object-fit:contain;}
+  tr.sub .exp-icon{width:18px; height:18px; vertical-align:-4px; margin-right:4px;}
+  .tile .what .exp-icon, .tile .what .cat-icon{width:24px; height:24px;}
+  .tile .what .meeple{width:22px; height:22px;}
+
+  /* Game tab */
+  .left{overflow:auto; display:flex; flex-direction:column; gap:10px;}
+  .row-label{font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 6px;}
+  .btn-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .pbtn{flex:1 1 100px; min-height:58px; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 6px; background:var(--tile-bg); border:1.5px solid var(--line); font-weight:600; font-size:1rem; cursor:pointer; color:var(--ink); min-width:0;}
+  .pbtn .name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .pbtn.sel{border-width:2px;}
+  .pbtn{position:relative;}
+  .pbtn.turn::after{content:'Turn'; position:absolute; top:-1px; left:50%; transform:translateX(-50%); padding:0 7px 1px; background:var(--ink); color:var(--parchment); font-size:.6rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; line-height:1.35;}
+  .player-label{display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:2px 10px;}
+  .turn-note{text-transform:none; letter-spacing:0; font-weight:500; font-size:.76rem;}
+  .turn-link{border:none; background:none; padding:0 0 0 6px; font:inherit; font-weight:600; color:var(--ink); text-decoration:underline; cursor:pointer;}
+  .feat-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:8px;}
+  .fbtn{min-height:78px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:6px 2px; background:var(--tile-bg); border:1.5px solid var(--line); font-weight:600; font-size:.85rem; cursor:pointer; color:var(--ink); min-width:0;}
+  .fbtn .cat-icon{width:36px; height:36px;}
+  .fbtn.sel{border:2px solid var(--ink);}
+  .fbtn:disabled{opacity:.4; cursor:not-allowed;}
+  .final-btn{width:100%; min-height:72px; display:flex; align-items:center; justify-content:center; gap:12px;}
+  .final-btn img{height:48px; width:auto; max-width:45%; object-fit:contain; flex-shrink:1; min-width:0;}
+  .select-row{display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:6px 10px;}
+  .select-row .row-label{margin:0; width:11.5em;}
+  .dd-wrap{min-width:0;}
+  .dd{width:100%; min-height:44px; display:flex; align-items:center; gap:8px; padding:6px 12px; font:inherit; font-size:1rem; text-align:left; background:#fff; border:1.5px solid var(--ink); color:var(--ink); cursor:pointer;}
+  .dd::after{content:'▾'; margin-left:auto; padding-left:8px; color:var(--ink-soft);}
+  .dd:disabled{opacity:.4; cursor:not-allowed;}
+  .dd .exp-icon, .dd .cat-icon, .dd-item .exp-icon, .dd-item .cat-icon, .dd-spacer{width:24px; height:24px; flex-shrink:0;}
+  .dd-label{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .dd-list{position:fixed; z-index:30; overflow-y:auto; background:#fff; border:1.5px solid var(--ink); box-shadow:0 4px 14px rgba(42,40,32,.3);}
+  .dd-group{padding:8px 12px 4px; font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:.85rem; color:var(--ink-soft);}
+  .dd-item{width:100%; min-height:44px; display:flex; align-items:center; gap:10px; padding:6px 12px; font:inherit; font-size:.95rem; text-align:left; background:transparent; border:none; color:var(--ink); cursor:pointer;}
+  .dd-item:hover, .dd-item:focus-visible{background:var(--tile-bg); outline:none;}
+  .dd-item[aria-selected="true"]{background:var(--parchment); font-weight:600;}
+  #noScoreBtn{background:#fff; color:var(--ink);}
+  .exp-hint{grid-column:1/-1; margin:0;}
+  .tile-actions{display:grid; grid-template-columns:2fr 1fr 1fr; gap:4px;}
+  .tile-actions .btn{min-height:44px; padding:6px 4px;}
+  .pt-row{display:grid; grid-template-columns:repeat(12,1fr); gap:4px;}
+  .pt-row button{height:56px; padding:0; font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:1.2rem; cursor:pointer; border:1.5px solid var(--ink);}
+  .pt-row.next button{background:#fff; color:var(--ink);}
+  .pt-row.stay button{background:var(--ink); color:var(--parchment);}
+  /* Paper tab attached to the top edge of each number row, not a button */
+  .pt-group{display:flex; flex-direction:column; gap:0;}
+  .pt-group .pt-row{border-top:2px solid var(--ink); padding-top:4px;}
+  .row-label.pt-label{position:relative; isolation:isolate; align-self:center; margin:0 0 -2px; padding:4px 26px 5px; text-align:center; letter-spacing:.05em; font-size:.68rem; cursor:default; user-select:none; -webkit-user-select:none;}
+  .pt-label::before, .pt-label::after{content:''; position:absolute; z-index:-1; clip-path:polygon(12px 0, calc(100% - 12px) 0, 100% 100%, 0 100%);}
+  .pt-label::before{inset:0; background:var(--ink);}
+  .pt-label::after{inset:2px 2px 0;}
+  .pt-label.next{color:var(--ink);}
+  .pt-label.next::after{background:#fff;}
+  .pt-label.stay{color:var(--parchment);}
+  .pt-label.stay::after{background:var(--ink);}
+  .pt-row button.add{background:#fff; color:var(--ink); border-color:var(--expansion); font-size:1rem;}
+  .pt-row.final:not(.adding) [data-b="10"]{grid-column:span 2;}
+  .pt-row [data-clear]{font-size:.72rem; font-family:'Work Sans',system-ui,sans-serif;}
+  .pt-row button.add:disabled{opacity:.4; cursor:not-allowed;}
+  .pt-row button.add.on{background:var(--expansion); border-color:var(--ink);}
+  .pt-row button:active{transform:scale(.93); opacity:.8;}
+  .toast{min-height:1.4em; font-weight:600; font-size:.9rem; color:var(--monastery);}
+  .toast.err{color:var(--city);}
+
+  [hidden]{display:none!important;}
+  .rightcol{display:flex; flex-direction:column; gap:12px; min-height:0; min-width:0;}
+  .view-switch{flex:0 0 auto; display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .vtab{padding:9px 12px; border:1.5px solid var(--ink); background:transparent; color:var(--ink); font-weight:600; font-size:.9rem; cursor:pointer;}
+  .vtab.active{background:var(--ink); color:var(--parchment);}
+  #viewScores{flex:1 1 0; min-height:0; display:flex; flex-direction:column; gap:12px;}
+  #viewRules{flex:1 1 0; min-height:0; min-width:0; display:flex; flex-direction:column;}
+  #ruleListView{flex:1 1 0; min-height:0; display:flex; flex-direction:column;}
+  #ruleReader{flex:1 1 0; min-height:0; min-width:0; display:flex; flex-direction:column; gap:8px;}
+  .rule-list{flex:1 1 0; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:6px;}
+  .rule-item{display:flex; align-items:center; gap:10px; min-height:46px; padding:6px 12px; background:var(--tile-bg); border:1.5px solid var(--line); color:var(--ink); font-weight:600; font-size:.92rem; text-align:left; cursor:pointer;}
+  .rule-item .cat-icon, .rule-no-icon{width:24px; height:24px; flex-shrink:0;}
+  .rule-bar{flex:0 0 auto; display:flex; flex-wrap:wrap; align-items:center; gap:8px;}
+  .rule-bar .btn{min-height:38px;}
+  .rule-title{flex:1 1 120px; min-width:0; font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:.95rem;}
+  .rule-page-no{font-size:.8rem; color:var(--ink-soft); white-space:nowrap;}
+  .rule-msg{margin:0; padding:10px 12px; background:var(--tile-bg); border:1px solid var(--line); font-size:.88rem; overflow-wrap:anywhere;}
+  .rule-pages{flex:1 1 0; min-height:0; min-width:0; overflow:auto; background:var(--parchment); padding:8px;}
+  .rule-page{margin:0 auto 8px; background:#fff; box-shadow:0 1px 3px rgba(42,40,32,.35);}
+  .rule-page canvas{display:block; width:100%; height:100%;}
+  .log-card{flex:1 1 0; min-height:120px; display:flex; flex-direction:column;}
+  .log{flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:6px;}
+  .tile{display:flex; align-items:center; gap:10px; padding:4px 4px 4px 10px; background:#fff; border:1px solid var(--line); border-left:5px solid var(--road); font-size:.88rem;}
+  .tile .meeple, th .meeple, .pbtn .meeple{width:20px; height:20px;}
+  .tile.new{animation:flash .9s ease-out;}
+  @keyframes flash{from{background:#F3E3A8;} to{background:#fff;}}
+  .tile .n{color:var(--ink-soft); font-size:.75rem; width:28px; flex-shrink:0;}
+  .tile .pname{font-weight:700; display:flex; align-items:center; gap:6px; min-width:84px;}
+  .tile .what{flex:1; color:var(--ink-soft); min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:5px;}
+  .log-sep{color:var(--ink-soft); opacity:.7;}
+  .tile .pts{font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:1.1rem;}
+  .tile .del{border:none; background:none; color:var(--ink-soft); font-size:1rem; cursor:pointer; padding:10px 12px;}
+  .score-card{flex:0 1 auto; max-height:55%; overflow:auto; padding-top:0; padding-bottom:0;}
+  .score-card .card-head{padding-top:14px;}
+  #scoreWrap > :last-child{margin-bottom:14px;}
+  thead th{position:sticky; top:0; z-index:1; background:var(--card-bg); box-shadow:inset 0 -1px 0 var(--line);}
+  tbody td:not(:first-child){white-space:nowrap;}
+  table{width:100%; border-collapse:collapse; font-size:.9rem;}
+  th,td{padding:7px 8px; text-align:right; border-bottom:1px solid var(--line);}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:.85rem; vertical-align:bottom; overflow-wrap:anywhere;}
+  tr.total-row td{font-weight:700; border-top:none; border-bottom:none; font-size:1.05rem; position:sticky; bottom:0; z-index:1; background:var(--card-bg); box-shadow:inset 0 2px 0 var(--ink);}
+  tr.sub td{font-size:.8rem; color:var(--ink-soft); padding-top:3px; padding-bottom:3px;}
+  tr.sub td:first-child{padding-left:26px;}
+  .cat-label{display:inline-flex; align-items:center; gap:6px; color:var(--ink-soft);}
+  .leader::after{content:' ♛'; font-size:.8em;}
+
+  /* Portrait tablets / phones: stack the halves and let the page scroll */
+  @media (max-width:900px){
+    body{height:auto; min-height:100dvh; overflow:auto;}
+    main{overflow:visible;}
+    #tab-game.active{display:flex; flex-direction:column;}
+    .left{overflow:visible;}
+    .rightcol{min-height:0;}
+    .log-card{flex:0 0 auto;}
+    .log{max-height:320px;}
+    .score-card{max-height:none; overflow:visible;}
+    #viewScores, #viewRules, #ruleListView, #ruleReader{flex:0 0 auto;}
+    .rule-list{flex:0 0 auto; overflow:visible;}
+    .rule-pages{flex:0 0 auto; height:75dvh;}
+  }
+  @media (max-width:560px){
+    .select-row{grid-template-columns:minmax(0,1fr);}
+    .select-row .row-label{width:auto;}
+    .rule-title{flex:1 1 100%; order:5;}
+    .rule-page-no{margin-left:auto;}
+    .pt-row{grid-template-columns:repeat(6,1fr);}
+    .feat-grid{grid-template-columns:repeat(3,1fr);}
+    h1{font-size:1rem;}
+    .tab{padding:9px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="hero-tiles"><span></span><span></span><span></span><span></span></div>
+    <h1>Carcassonne Scorekeeper</h1>
+  </div>
+  <nav class="tabs">
+    <button class="tab" data-tab="setup">1 · Setup</button>
+    <button class="tab" data-tab="game">2 · Game</button>
+  </nav>
+</header>
+
+<main>
+  <!-- TAB 1: SETUP -->
+  <div id="tab-setup" class="tabpane">
+    <div class="setup-wrap">
+      <section class="card">
+        <h2>Players</h2>
+        <ul class="player-list" id="playerList"></ul>
+        <div class="add-player" id="addPlayerRow">
+          <input type="text" id="newPlayerName" placeholder="Player name" maxlength="14" autocomplete="off">
+          <div class="color-picks" id="colorPicks"></div>
+          <button class="btn" id="addPlayerBtn">Add player</button>
+        </div>
+        <p class="empty" id="maxNote" style="display:none;">Maximum of 6 players reached.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Expansions in this game</h2>
+          <span class="count" id="expCount"></span>
+        </div>
+        <div id="expChecklist"></div>
+      </section>
+
+      <div class="setup-footer">
+        <div class="tile-sum" id="tileSum"></div>
+        <span class="info" id="setupInfo"></span>
+        <button class="btn secondary small" id="clearScoresBtn">Clear scores</button>
+        <button class="btn secondary small" id="resetBtn">Reset everything</button>
+        <button class="btn" id="startBtn">Start game →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: GAME -->
+  <div id="tab-game" class="tabpane">
+    <section class="card left">
+      <h2>Log a Score</h2>
+      <div id="noPlayers" style="display:none;">
+        <p class="empty">Add players in Setup first. <button class="btn small secondary" data-goto="setup">Go to Setup</button></p>
+      </div>
+      <div>
+        <div class="row-label player-label"><span>Player</span><span class="turn-note" id="turnNote"></span></div>
+        <div class="btn-row" id="gPlayers"></div>
+      </div>
+      <div class="select-row" id="gTileRow"></div>
+      <div>
+        <div class="row-label">Points from feature</div>
+        <div class="feat-grid" id="gFeatures"></div>
+      </div>
+      <div class="select-row" id="gExpRow"></div>
+      <div class="pt-group">
+        <div class="row-label pt-label next">Points, next turn</div>
+        <div class="pt-row next" id="rowNext"></div>
+      </div>
+      <div class="pt-group">
+        <div class="row-label pt-label stay">Points, same turn</div>
+        <div class="pt-row stay" id="rowStay"></div>
+      </div>
+      <div class="tile-actions">
+        <button class="btn secondary" id="noScoreBtn">No score, next turn</button>
+        <button class="btn secondary" id="extraTileBtn">+1 tile</button>
+        <button class="btn secondary" id="undoTileBtn">Undo tile</button>
+      </div>
+      <button class="btn secondary final-btn" id="finalBtn">Go to final scoring</button>
+      <div class="toast" id="toast"></div>
+    </section>
+
+    <div class="rightcol">
+      <div class="view-switch">
+        <button class="vtab" data-view="scores">Scores</button>
+        <button class="vtab" data-view="rules">Rulebooks</button>
+      </div>
+      <div id="viewScores">
+      <section class="card log-card">
+        <h2>Turn Log</h2>
+        <div class="log" id="logWrap"></div>
+      </section>
+      <section class="card score-card">
+        <div class="card-head">
+          <h2>Score Breakdown</h2>
+          <button class="btn small" id="downloadBtn">⬇ Download spreadsheet</button>
+        </div>
+        <div id="scoreWrap"></div>
+      </section>
+      </div>
+      <section class="card" id="viewRules" hidden>
+        <div id="ruleListView">
+          <h2>Rulebooks</h2>
+          <div class="rule-list" id="ruleList"></div>
+        </div>
+        <div id="ruleReader" hidden>
+          <div class="rule-bar">
+            <button class="btn small secondary" id="ruleBack">← All rulebooks</button>
+            <span class="rule-title" id="ruleTitle"></span>
+            <span class="rule-page-no" id="rulePageNo"></span>
+            <button class="btn small secondary" id="ruleZoomOut" aria-label="Zoom out">−</button>
+            <button class="btn small secondary" id="ruleZoomIn" aria-label="Zoom in">+</button>
+          </div>
+          <p class="rule-msg" id="ruleMsg" hidden></p>
+          <div class="rule-pages" id="rulePages" tabindex="0"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script>
+const CATS = [
+  {id:'road',      label:'Road',      plural:'Roads',       hex:'#7C7A6D'},
+  {id:'city',      label:'City',      plural:'Cities',      hex:'#B5503A'},
+  {id:'monastery', label:'Monastery', plural:'Monasteries', hex:'#3E5D45'},
+  {id:'expansion', label:'Expansion', plural:'Expansions',  hex:'#B8862F'},
+  {id:'field',     label:'Field',     plural:'Fields',      hex:'#8C9B52'},
+];
+
+const EXPANSION_GROUPS = [
+  {label:'Basic', items:['Abbot','River']},
+  {label:'Major', items:[
+    '1. Inns & Cathedrals',
+    '2. Traders & Builders',
+    '3. Dragon & Fairy',
+    '4. Towers & Thieves',
+    '5. Messengers & Mayors',
+    '6. Jousts & Crests',
+    '7. Siege & Defense',
+    '8. Castles & Bridges',
+    '9. Sheep & Shepherds',
+    '10. Circus & Artists',
+    '11. Ghosts, Castles and Cemeteries',
+  ]},
+  {label:'Mini', items:[
+    '1 - The Flying Machines',
+    '2 - The Messages',
+    '3 - The Ferries',
+    '4 - The Gold Mines',
+    '5 - Magician & Witch',
+    '6 - The Robbers',
+    '7 - The Crop Circles',
+  ]},
+  {label:'Other', items:[
+    'Hansa','Spring','Summer','Autumn','Winter','Bets','German Cathedrals','Drawbridges',
+    'Festival','Fruit-Bearing Trees','Markets of Leipzig','Monasteries in Germany',
+    'Peasant Revolts','Phantom','Signposts','Tollkeepers','Watchtowers','Wonders of Humanity',
+    'Castles in Germany','Snakes and Ladders','Spell Circles','Gifts','Halflings',
+    'Japanese Buildings','Journey to Carcassonne','Labyrinth','Barber-Surgeons','Starting Tableau',
+    'Spiel 25','Spiel 26',
+  ].sort((a,b)=>a.localeCompare(b))},
+];
+const EXPANSION_ICONS = {
+  'Abbot':'abbot',
+  'River':'river',
+  '1. Inns & Cathedrals':'inns-cathedrals',
+  '2. Traders & Builders':'traders-builders',
+  '3. Dragon & Fairy':'dragon-fairy',
+  '4. Towers & Thieves':'towers-thieves',
+  '5. Messengers & Mayors':'messengers-mayors',
+  '6. Jousts & Crests':'jousts-crests',
+  '7. Siege & Defense':'siege-defense',
+  '8. Castles & Bridges':'castles-bridges',
+  '9. Sheep & Shepherds':'sheep-shepherds',
+  '10. Circus & Artists':'circus-artists',
+  '11. Ghosts, Castles and Cemeteries':'ghosts-castles-cemeteries',
+  '1 - The Flying Machines':'mini-flying-machines',
+  '2 - The Messages':'mini-messengers',
+  '3 - The Ferries':'mini-ferries',
+  '4 - The Gold Mines':'mini-gold-mines',
+  '5 - Magician & Witch':'mini-magician-witch',
+  '6 - The Robbers':'mini-robbers',
+  '7 - The Crop Circles':'mini-crop-circles',
+  'Autumn':'other-autumn',
+  'Barber-Surgeons':'other-barber-surgeons',
+  'Bets':'other-bets',
+  'Castles in Germany':'other-castles-in-germany',
+  'Drawbridges':'other-drawbridges',
+  'Festival':'other-festival',
+  'Fruit-Bearing Trees':'other-fruit-bearing-trees',
+  'German Cathedrals':'other-german-cathedrals',
+  'Gifts':'other-gifts',
+  'Halflings':'other-halflings',
+  'Hansa':'other-hansa',
+  'Japanese Buildings':'other-monasteries-in-germany',
+  'Journey to Carcassonne':'other-journey-to-carcassonne',
+  'Labyrinth':'other-labyrinth',
+  'Markets of Leipzig':'other-markets-of-leipzig',
+  'Monasteries in Germany':'other-monasteries-in-germany',
+  'Peasant Revolts':'other-peasant-revolts',
+  'Phantom':'other-phantom',
+  'Signposts':'other-signposts',
+  'Snakes and Ladders':'other-snakes-and-ladders',
+  'Spell Circles':'other-spell-circles',
+  'Spiel 25':'other-spiel',
+  'Spiel 26':'other-spiel',
+  'Spring':'other-spring',
+  'Starting Tableau':'other-starting-tableau',
+  'Summer':'other-summer',
+  'Tollkeepers':'other-tollkeepers',
+  'Watchtowers':'other-watchtowers',
+  'Winter':'other-winter',
+  'Wonders of Humanity':'other-wonders-of-humanity',
+};
+// s = starting, r = river, l = landscape tiles. perPlayer: the landscape count is per player.
+const BASE_TILES = {s:1, r:0, l:71};
+const TILES = {
+  'River':{r:12},
+  '1 - The Flying Machines':{l:8}, '3 - The Ferries':{l:8}, '4 - The Gold Mines':{l:8},
+  '5 - Magician & Witch':{l:8}, '6 - The Robbers':{l:8}, '7 - The Crop Circles':{l:8},
+  '1. Inns & Cathedrals':{r:1,l:23}, '2. Traders & Builders':{r:1,l:23}, '3. Dragon & Fairy':{r:2,l:26},
+  '4. Towers & Thieves':{r:1,l:12}, '5. Messengers & Mayors':{r:1,l:11}, '6. Jousts & Crests':{r:1,l:8},
+  '7. Siege & Defense':{r:1,l:17}, '8. Castles & Bridges':{r:1,l:15}, '9. Sheep & Shepherds':{r:1,l:18},
+  '10. Circus & Artists':{r:1,l:19}, '11. Ghosts, Castles and Cemeteries':{s:1,l:60},
+  'Hansa':{r:1,l:20}, 'Spring':{l:12}, 'Summer':{l:12}, 'Autumn':{l:12}, 'Winter':{l:12}, 'Bets':{l:10},
+  'German Cathedrals':{l:6}, 'Drawbridges':{l:12}, 'Festival':{l:12}, 'Fruit-Bearing Trees':{l:6},
+  'Markets of Leipzig':{s:4}, 'Monasteries in Germany':{l:6}, 'Peasant Revolts':{l:12}, 'Signposts':{l:12},
+  'Tollkeepers':{l:10}, 'Watchtowers':{l:12}, 'Wonders of Humanity':{l:12}, 'Castles in Germany':{l:6},
+  'Spell Circles':{l:9}, 'Halflings':{l:24}, 'Japanese Buildings':{l:6}, 'Barber-Surgeons':{l:6},
+  'Starting Tableau':{s:1}, 'Spiel 25':{l:1}, 'Spiel 26':{l:1}, 'Labyrinth':{l:8, perPlayer:true},
+};
+const landscapeTiles = name => {
+  const t = TILES[name]; if(!t || !t.l) return 0;
+  return t.perPlayer ? t.l * state.players.length : t.l;
+};
+const tileMark = (kind, n, suffix='') => {
+  const k = {s:['tiles/starting','Starting tiles'], r:['expansions/river','River tiles'], l:['tiles/landscape','Landscape tiles']}[kind];
+  return `<span class="tile-mark" title="${k[1]}"><img src="icons/${k[0]}.png" alt="${k[1]}:">${n}${suffix}</span>`;
+};
+function tileLabel(name){
+  const t = TILES[name]; if(!t) return '';
+  return (t.s ? tileMark('s', t.s) : '') + (t.r ? tileMark('r', t.r) : '') + (t.l ? tileMark('l', t.l, t.perPlayer ? ' per player' : '') : '');
+}
+// Base game plus ticked expansions. River tiles only count while River is ticked,
+// and the River replaces the base game's starting tile.
+function tileTotals(){
+  const hasRiver = state.enabled.includes('River');
+  const out = {s:hasRiver ? 0 : BASE_TILES.s, r:0, l:BASE_TILES.l};
+  state.enabled.forEach(name=>{
+    const t = TILES[name]; if(!t) return;
+    out.s += t.s || 0;
+    if(hasRiver) out.r += t.r || 0;
+    out.l += landscapeTiles(name);
+  });
+  out.total = out.s + out.r + out.l;
+  return out;
+}
+// Tiles a player draws during the game: river and landscape, not starting tiles
+function tilesInSource(name){
+  if(name===BASE_RULEBOOK_NAME) return BASE_TILES.l;
+  if(name==='River') return tileTotals().r;
+  return landscapeTiles(name);
+}
+const tileSources = () => [BASE_RULEBOOK_NAME, ...orderedEnabled().filter(n=>tilesInSource(n)>0)];
+function tilesPlayed(){
+  const by = {}; let total = 0;
+  state.entries.forEach(e=>{ if(e.tile){ by[e.tile] = (by[e.tile]||0)+1; total++; } });
+  return {by, total};
+}
+const tileSummary = () => {
+  const t = tileTotals();
+  return `<strong>Tiles in this game</strong> ${tileMark('s', t.s)}${tileMark('r', t.r)}${tileMark('l', t.l)} Total <b>${t.total}</b>`;
+};
+const expIcon = name => EXPANSION_ICONS[name] ? `<img class="exp-icon" src="icons/expansions/${EXPANSION_ICONS[name]}.png" alt="">` : '';
+const ALL_EXPANSIONS = EXPANSION_GROUPS.flatMap(g=>g.items);
+const PLAYER_COLORS = ['#C0392B','#2E5B9E','#D4A017','#3E7A45','#4A4A4A','#B05A9E'];
+const MEEPLES = {'#C0392B':'red','#2E5B9E':'blue','#D4A017':'yellow','#3E7A45':'green','#4A4A4A':'black','#B05A9E':'pink'};
+const meeple = c => `<img class="meeple" src="icons/meeples/${MEEPLES[c]}.png" alt="${MEEPLES[c]} meeple">`;
+const MAX_PLAYERS = PLAYER_COLORS.length;
+const STORAGE_KEY = 'carcassonne-game-v2';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2,9);
+const sum = o => Object.values(o).reduce((a,b)=>a+b,0);
+const catInfo = id => CATS.find(c=>c.id===id);
+const catIcon = c => `<img class="cat-icon" src="icons/features/${c.id}.png" alt="">`;
+const playerById = id => state.players.find(p=>p.id===id);
+
+const BASE_RULEBOOK_NAME = 'Base Game';
+function freshState(){
+  return {players:[], enabled:[], entries:[], ui:{playerId:null, turnPlayerId:null, cat:null, expansion:null, finalScoring:false, rightView:'scores', tileFrom:null}};
+}
+let state = freshState();
+let chosenColor = null;
+let lastAddedId = null;
+let bonus = 0; // +10 or +20 selected, added to the next digit tapped
+const MAX_FINAL_BONUS = 90; // keeps the largest total at two digits, so it fits the buttons
+
+/* ---------- Persistence ---------- */
+function loadState(){
+  let raw = null;
+  try{ raw = localStorage.getItem(STORAGE_KEY); }catch(e){}
+  if(!raw) return;
+  try{
+    const s = JSON.parse(raw), f = freshState();
+    state = {
+      players: Array.isArray(s.players) ? s.players : f.players,
+      enabled: Array.isArray(s.enabled) ? s.enabled : f.enabled,
+      entries: Array.isArray(s.entries) ? s.entries : f.entries,
+      ui: Object.assign(f.ui, s.ui || {}),
+    };
+  }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+function orderedEnabled(){ return ALL_EXPANSIONS.filter(x=>state.enabled.includes(x)); }
+function sanitize(){
+  const ids = state.players.map(p=>p.id);
+  if(!ids.includes(state.ui.playerId)) state.ui.playerId = ids[0] || null;
+  if(!ids.includes(state.ui.turnPlayerId)) state.ui.turnPlayerId = state.ui.playerId;
+  state.enabled = state.enabled.filter(x=>ALL_EXPANSIONS.includes(x));
+  if(!CATS.some(c=>c.id===state.ui.cat)) state.ui.cat = null;
+  if(state.ui.rightView!=='rules') state.ui.rightView = 'scores';
+  if(state.ui.tileFrom && !tileSources().includes(state.ui.tileFrom)) state.ui.tileFrom = null;
+  if(state.ui.cat==='field' && !state.ui.finalScoring) state.ui.cat = null;
+  if(state.ui.cat!=='expansion' || !state.enabled.includes(state.ui.expansion)) state.ui.expansion = null;
+}
+
+/* ---------- Tabs ---------- */
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('active', p.id==='tab-'+t));
+}
+
+/* ---------- Setup tab ---------- */
+function freeColors(){ return PLAYER_COLORS.filter(c=>!state.players.some(p=>p.color===c)); }
+
+function renderSetup(){
+  // players
+  $('playerList').innerHTML = state.players.length
+    ? state.players.map((p,i)=>`<li class="player-item"><span class="num">${i+1}</span>${meeple(p.color)}${esc(p.name)}<button class="rm" data-rm="${p.id}" aria-label="Remove ${esc(p.name)}">✕</button></li>`).join('')
+    : '<li class="empty">No players yet. Add them in the order they sit at the table; that is the order used when logging scores.</li>';
+
+  const full = state.players.length >= MAX_PLAYERS;
+  $('addPlayerRow').style.display = full ? 'none' : 'flex';
+  $('maxNote').style.display = full ? 'block' : 'none';
+
+  const free = freeColors();
+  if(!free.includes(chosenColor)) chosenColor = free[0] || null;
+  $('colorPicks').innerHTML = PLAYER_COLORS.map(c=>{
+    const taken = !free.includes(c);
+    return `<div class="color-pick${c===chosenColor?' selected':''}${taken?' taken':''}" data-color="${c}">${meeple(c)}</div>`;
+  }).join('');
+
+  // expansions
+  $('expChecklist').innerHTML = EXPANSION_GROUPS.map((g,gi)=>{
+    const n = g.items.filter(i=>state.enabled.includes(i)).length;
+    return `<div class="exp-group">
+      <div class="exp-group-head"><h3>${esc(g.label)}</h3>${g.items.length>1?`<span class="count">${n}/${g.items.length}</span>
+        <button class="btn small secondary" data-gall="${gi}">All</button>
+        <button class="btn small secondary" data-gnone="${gi}">None</button>`:''}</div>
+      <div class="exp-grid">${g.items.map((it,ii)=>`<label class="exp-item"><input type="checkbox" data-g="${gi}" data-i="${ii}"${state.enabled.includes(it)?' checked':''}>${expIcon(it)}<span class="exp-name">${esc(it)}</span>${tileLabel(it)?`<span class="exp-tiles">${tileLabel(it)}</span>`:''}</label>`).join('')}</div>
+    </div>`;
+  }).join('');
+  $('expCount').textContent = `${state.enabled.length} selected`;
+
+  $('setupInfo').textContent = `${state.players.length} player${state.players.length===1?'':'s'} · ${state.enabled.length} expansion${state.enabled.length===1?'':'s'}`;
+  $('tileSum').innerHTML = tileSummary();
+  $('startBtn').disabled = state.players.length===0;
+}
+
+function addPlayer(){
+  const input = $('newPlayerName');
+  const name = input.value.trim();
+  if(!name || state.players.length >= MAX_PLAYERS) return;
+  const free = freeColors();
+  const color = free.includes(chosenColor) ? chosenColor : free[0];
+  state.players.push({id:uid(), name, color});
+  input.value = ''; chosenColor = null;
+  save(); render(); input.focus();
+}
+
+function removePlayer(id){
+  const p = playerById(id); if(!p) return;
+  const has = state.entries.some(e=>e.playerId===id);
+  if(has && !confirm(`Remove ${p.name} and all their logged points?`)) return;
+  state.players = state.players.filter(x=>x.id!==id);
+  state.entries = state.entries.filter(x=>x.playerId!==id);
+  save(); render();
+}
+
+/* ---------- Game tab ---------- */
+function renderGame(){
+  const has = state.players.length > 0;
+  $('noPlayers').style.display = has ? 'none' : 'block';
+
+  $('gPlayers').innerHTML = state.players.map(p=>{
+    const sel = p.id===state.ui.playerId;
+    const isTurn = p.id===state.ui.turnPlayerId;
+    return `<button class="pbtn${sel?' sel':''}${isTurn?' turn':''}" data-p="${p.id}"${isTurn?' aria-current="true"':''} style="${sel?`border-color:${p.color};background:${p.color}26;`:''}">${meeple(p.color)}<span class="name">${esc(p.name)}</span></button>`;
+  }).join('');
+
+  const turnP = playerById(state.ui.turnPlayerId), sel = playerById(state.ui.playerId);
+  $('turnNote').innerHTML = turnP && sel && turnP.id!==sel.id
+    ? `Points go to ${esc(sel.name)} on ${esc(turnP.name)}'s turn <button class="turn-link" id="setTurnBtn">Make it ${esc(sel.name)}'s turn</button>` : '';
+
+  $('gFeatures').innerHTML = CATS.map(c=>{
+    const sel = state.ui.cat===c.id;
+    const locked = c.id==='field' && !state.ui.finalScoring;
+    return `<button class="fbtn${sel?' sel':''}" data-c="${c.id}"${locked?' disabled':''} style="${sel?`background:${c.hex}26;box-shadow:inset 0 -6px 0 ${c.hex};`:''}">${catIcon(c)}${c.label}</button>`;
+  }).join('');
+
+  $('noScoreBtn').disabled = !has || state.ui.finalScoring;
+  $('extraTileBtn').disabled = !has || state.ui.finalScoring;
+  $('undoTileBtn').disabled = state.ui.finalScoring || !state.entries.some(e=>e.tile);
+  $('finalBtn').innerHTML = state.ui.finalScoring ? 'Back to game' : '<img src="icons/final-scoring.png" alt="">Go to final scoring';
+  renderExpRow();
+  renderRightView();
+  renderRuleList();
+  renderBonus();
+  renderLog();
+  renderScore();
+  $('downloadBtn').disabled = !has;
+}
+
+const baseIcon = () => `<img class="exp-icon" src="icons/expansions/base-game.png" alt="">`;
+const sourceIcon = name => name===BASE_RULEBOOK_NAME ? baseIcon() : expIcon(name);
+function dropdown(id, value, groups, placeholder, disabled){
+  const all = groups.flatMap(g=>g.items);
+  const current = all.find(i=>i.value===value);
+  const item = i => `<button type="button" class="dd-item" role="option" data-value="${esc(i.value)}" aria-selected="${i.value===value}">${i.icon||'<span class="dd-spacer"></span>'}<span>${esc(i.text)}</span></button>`;
+  return `<button type="button" class="dd" id="${id}" data-value="${esc(value||'')}" aria-haspopup="listbox" aria-expanded="false"${disabled?' disabled':''}>` +
+    `${current&&current.icon?current.icon:''}<span class="dd-label">${esc(current?current.text:placeholder)}</span></button>` +
+    `<div class="dd-list" id="${id}-list" role="listbox" hidden>` +
+    (placeholder&&!disabled ? `<button type="button" class="dd-item" role="option" data-value="" aria-selected="${!value}"><span class="dd-spacer"></span><span>${esc(placeholder)}</span></button>` : '') +
+    groups.map(g=>(g.label?`<div class="dd-group">${esc(g.label)}</div>`:'')+g.items.map(item).join('')).join('') + '</div>';
+}
+
+function renderExpRow(){
+  closeDropdown();
+  const active = state.ui.cat==='expansion';
+  const groups = EXPANSION_GROUPS
+    .map(g=>({label:g.label, items:g.items.filter(i=>state.enabled.includes(i)).map(i=>({value:i, text:i, icon:expIcon(i)}))}))
+    .filter(g=>g.items.length);
+  const none = !groups.length;
+  const played = tilesPlayed().by;
+  const sources = tileSources().map(n=>({value:n, text:`${n} (${played[n]||0}/${tilesInSource(n)})`, icon:sourceIcon(n)}));
+  $('gTileRow').innerHTML = '<label class="row-label" for="tileFromSelect">Tile played from</label><div class="dd-wrap">' +
+    dropdown('tileFromSelect', state.ui.tileFrom, [{items:sources}], 'Choose expansion', state.ui.finalScoring) + '</div>';
+  $('gExpRow').innerHTML = '<label class="row-label" for="expSelect">Points from expansion</label><div class="dd-wrap">' +
+    dropdown('expSelect', state.ui.expansion, groups.map(g=>({items:g.items})), none ? 'No expansions ticked in Setup' : 'Choose expansion', !active || none) + '</div>' +
+    (active && none ? '<p class="empty exp-hint"><button class="btn small secondary" data-goto="setup">Choose in Setup</button></p>' : '');
+}
+
+let ddScrollFrom = null;
+function closeDropdown(refocus){
+  const list = document.querySelector('.dd-list:not([hidden])');
+  if(!list) return;
+  list.hidden = true;
+  const btn = $(list.id.replace('-list',''));
+  btn.setAttribute('aria-expanded','false');
+  if(refocus) btn.focus();
+}
+
+function openDropdown(btn){
+  closeDropdown();
+  const list = $(btn.id+'-list'), r = btn.getBoundingClientRect();
+  list.hidden = false;
+  btn.setAttribute('aria-expanded','true');
+  const below = innerHeight - r.bottom - 8, above = r.top - 8, useBelow = below >= 220 || below >= above;
+  list.style.left = r.left + 'px';
+  list.style.width = r.width + 'px';
+  list.style.maxHeight = Math.min(420, useBelow ? below : above) + 'px';
+  list.style.top = useBelow ? (r.bottom + 2) + 'px' : 'auto';
+  list.style.bottom = useBelow ? 'auto' : (innerHeight - r.top + 2) + 'px';
+  const start = list.querySelector('[aria-selected="true"]') || list.querySelector('.dd-item');
+  start.focus({preventScroll:true});
+  list.scrollTop = Math.max(0, start.offsetTop - list.clientHeight/2);
+  ddScrollFrom = {page:window.scrollY, panel:document.querySelector('.left').scrollTop};
+}
+
+// Only a real scroll closes the list, not the tail end of a swipe or a browser adjustment
+function closeDropdownOnScroll(){
+  if(!ddScrollFrom || document.querySelector('.dd-list:not([hidden])')===null) return;
+  const moved = Math.abs(window.scrollY-ddScrollFrom.page) + Math.abs(document.querySelector('.left').scrollTop-ddScrollFrom.panel);
+  if(moved>60) closeDropdown();
+}
+
+// Points from expansion follows the tile's expansion unless one is already chosen
+function defaultExpansionFromTile(){
+  if(state.ui.cat==='expansion' && !state.ui.expansion && state.enabled.includes(state.ui.tileFrom)) state.ui.expansion = state.ui.tileFrom;
+}
+
+function chooseDropdown(btnId, value){
+  if(btnId==='tileFromSelect'){
+    state.ui.tileFrom = value || null;
+    defaultExpansionFromTile();
+  }
+  if(btnId==='expSelect') state.ui.expansion = value || null;
+  closeDropdown();
+  save(); renderExpRow();
+  $(btnId).focus();
+}
+
+function renderBonus(){
+  const final = state.ui.finalScoring;
+  document.querySelectorAll('.pt-row').forEach(row=>{
+    row.classList.toggle('final', final);
+    row.classList.toggle('adding', final && bonus>0);
+  });
+  document.querySelectorAll('.pt-row [data-v]').forEach(b=>{ b.textContent = final ? +b.dataset.v + bonus : b.dataset.v; });
+  document.querySelectorAll('[data-b]').forEach(b=>{
+    const on = final ? (+b.dataset.b===10 && bonus>0) : +b.dataset.b === bonus;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on);
+    b.hidden = final && +b.dataset.b===20;
+    b.disabled = final && bonus>=MAX_FINAL_BONUS;
+  });
+  document.querySelectorAll('[data-clear]').forEach(b=>{ b.hidden = !(final && bonus>0); });
+}
+
+// A turn ends when a score is logged with the "next player" row
+function turnNumbers(){
+  let turn = 1;
+  return state.entries.map(e=>{ const n = turn; if(!e.stay) turn++; return n; });
+}
+
+// Symbols for what scored / which tile it came from. The title keeps the words for hover and screen readers.
+function logDescription(e, c){
+  const source = e.from || e.tile;
+  const noScore = e.hidden ? (e.stay ? 'Extra tile' : 'No score') : null;
+  const scoredHtml = noScore ? esc(noScore) : (e.subtype ? expIcon(e.subtype) : catIcon(c));
+  const scoredText = noScore || e.subtype || c.label;
+  const owner = source && e.turn && e.turn!==e.playerId ? playerById(e.turn) : null;
+  if(!source) return {html:scoredHtml || esc(scoredText), title:scoredText};
+  if(e.subtype===source) return {html:`${owner?meeple(owner.color):''}${scoredHtml}`, title:`${scoredText}${owner?` on ${owner.name}'s turn`:''}`};
+  const tileHtml = sourceIcon(source) || esc(source);
+  const title = `${scoredText}${owner?` on ${owner.name}'s turn`:''} / ${source}`;
+  return {html:`${scoredHtml}<span class="log-sep">/</span>${owner?meeple(owner.color):''}${tileHtml}`, title};
+}
+
+function renderLog(){
+  const w = $('logWrap');
+  if(!state.entries.length){ w.innerHTML = '<p class="empty">No turns logged yet.</p>'; return; }
+  const turns = turnNumbers();
+  w.innerHTML = state.entries.map((e,i)=>({e,i})).reverse().map(({e,i})=>{
+    const p = playerById(e.playerId); if(!p) return '';
+    const c = e.hidden ? null : catInfo(e.category);
+    const what = logDescription(e, c);
+    return `<div class="tile${e.id===lastAddedId?' new':''}" style="border-left-color:${c ? c.hex : 'var(--road)'}"><span class="n">#${turns[i]}</span><span class="pname">${meeple(p.color)}${esc(p.name)}</span><span class="what" title="${esc(what.title)}" aria-label="${esc(what.title)}">${what.html}</span><span class="pts">+${e.points}</span><button class="del" data-del="${e.id}" aria-label="Undo this entry">✕</button></div>`;
+  }).join('');
+}
+
+function computeTotals(){
+  const byPlayer = {};
+  state.players.forEach(p=>byPlayer[p.id] = {road:0,city:0,monastery:0,field:0,expansion:0});
+  const byExp = {}, expOrder = [];
+  state.entries.forEach(e=>{
+    if(!byPlayer[e.playerId] || e.hidden) return;
+    byPlayer[e.playerId][e.category] += e.points;
+    if(e.category==='expansion' && e.subtype){
+      if(!byExp[e.subtype]){ byExp[e.subtype] = {}; expOrder.push(e.subtype); }
+      byExp[e.subtype][e.playerId] = (byExp[e.subtype][e.playerId]||0) + e.points;
+    }
+  });
+  // an expansion with tiles played but no points still gets a row
+  Object.keys(tilesPlayed().by).forEach(n=>{
+    if(n!==BASE_RULEBOOK_NAME && n!=='River' && !byExp[n]){ byExp[n] = {}; expOrder.push(n); }
+  });
+  return {byPlayer, byExp, expOrder};
+}
+
+function renderScore(){
+  const wrap = $('scoreWrap'), pl = state.players;
+  if(!pl.length){ wrap.innerHTML = '<p class="empty">Add players in Setup to see the breakdown.</p>'; return; }
+  const T = computeTotals();
+  const played = tilesPlayed(), tt = tileTotals();
+  const basePlayed = played.by[BASE_RULEBOOK_NAME]||0, riverPlayed = played.by.River||0;
+  const landPlayed = played.total - basePlayed - riverPlayed;
+  const totals = pl.map(p=>sum(T.byPlayer[p.id]));
+  const top = Math.max(...totals);
+  let h = '<table><thead><tr><th></th>' + pl.map(p=>`<th>${meeple(p.color)} ${esc(p.name)}</th>`).join('') + '</tr></thead><tbody>';
+  CATS.forEach(c=>{
+    h += `<tr><td><span class="cat-label">${catIcon(c)}${c.plural}</span></td>` + pl.map(p=>`<td>${T.byPlayer[p.id][c.id]}</td>`).join('') + '</tr>';
+    if(c.id==='expansion'){
+      T.expOrder.forEach(name=>{
+        const totalTiles = tilesInSource(name);
+        h += `<tr class="sub"><td>${expIcon(name)}${esc(name)}${totalTiles ? ` (${played.by[name]||0}/${totalTiles})` : ''}</td>` + pl.map(p=>`<td>${T.byExp[name][p.id]||0}</td>`).join('') + '</tr>';
+      });
+    }
+  });
+  h += '<tr class="total-row"><td>Total</td>' + totals.map(t=>`<td class="${t===top && t>0?'leader':''}">${t}</td>`).join('') + '</tr></tbody></table>' + `<p class="tile-sum score-tiles"><strong>Tiles in this game</strong> ${tileMark('s', tt.s)}${tileMark('r', tt.r)}<span class="tile-mark" title="Base Game">${baseIcon()}${basePlayed}/${BASE_TILES.l}</span>${tileMark('l', `${landPlayed}/${tt.l-BASE_TILES.l}`)}<span class="tile-part">Total <b id="tilesPlayedTotal">${tt.s+played.total}/${tt.total}</b></span></p>`;
+  wrap.innerHTML = h;
+}
+
+let toastTimer;
+function toast(msg, isErr){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isErr ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.textContent=''; }, 5000);
+}
+
+// The player after whoever's turn it is, whoever received the points
+function nextPlayer(){
+  const i = state.players.findIndex(x=>x.id===state.ui.turnPlayerId);
+  return state.players[(i+1) % state.players.length];
+}
+
+// A tile with no score
+function logTileOnly(advance){
+  const p = playerById(state.ui.turnPlayerId); if(!p || state.ui.finalScoring) return;
+  if(!state.ui.tileFrom){ toast('Choose where the tile came from first.', true); return; }
+  const entry = {id:uid(), playerId:p.id, category:null, subtype:null, points:0, stay:!advance, hidden:true, tile:state.ui.tileFrom, turn:state.ui.turnPlayerId};
+  state.entries.push(entry);
+  lastAddedId = entry.id;
+  state.ui.tileFrom = null;
+  let msg = `${advance?'No score':'Extra tile'} for ${p.name}. Tile: ${entry.tile}`;
+  if(advance){
+    const next = nextPlayer();
+    state.ui.playerId = next.id; state.ui.turnPlayerId = next.id; state.ui.cat = null; state.ui.expansion = null; bonus = 0;
+    msg += ` → ${next.name}'s turn`;
+  }
+  save(); renderGame(); toast(msg);
+}
+// Removes the latest tile with its log line, including any points on that line.
+// The turn only moves back if nothing has been logged since.
+function undoTile(){
+  let i = state.entries.length-1;
+  while(i>=0 && !state.entries[i].tile) i--;
+  if(i<0 || state.ui.finalScoring) return;
+  const e = state.entries[i], wasLast = i===state.entries.length-1;
+  state.entries.splice(i,1);
+  if(wasLast && !e.stay){
+    const owner = playerById(e.turn) ? e.turn : e.playerId;
+    state.ui.turnPlayerId = owner;
+    state.ui.playerId = e.playerId;
+    if(!e.hidden){ state.ui.cat = e.category; state.ui.expansion = e.subtype || null; }
+  }
+  if(wasLast) state.ui.tileFrom = e.tile;
+  bonus = 0;
+  const p = playerById(e.playerId);
+  save(); renderGame();
+  toast(`Undone: ${e.hidden ? (e.stay ? 'extra tile' : 'no score') : '+'+e.points+' '+catInfo(e.category).label} for ${p?p.name:'player'}. Tile: ${e.tile}`);
+}
+
+function logScore(pts, advance){
+  const p = playerById(state.ui.playerId);
+  if(!p){ toast('Add players in Setup first.', true); return; }
+  if(!state.ui.finalScoring && !state.ui.tileFrom){ toast('Choose where the tile came from first.', true); return; }
+  if(!state.ui.cat){ toast('Pick a feature first.', true); return; }
+  const isExp = state.ui.cat==='expansion';
+  if(isExp && !state.ui.expansion){ toast('Choose an expansion first.', true); return; }
+  const entry = {id:uid(), playerId:p.id, category:state.ui.cat, subtype:isExp?state.ui.expansion:null, points:pts, stay:!advance, from:state.ui.finalScoring ? null : state.ui.tileFrom, turn:state.ui.turnPlayerId};
+  const countsTile = advance && !state.ui.finalScoring;
+  if(countsTile){ entry.tile = state.ui.tileFrom; state.ui.tileFrom = null; }
+  state.entries.push(entry);
+  lastAddedId = entry.id;
+  bonus = 0;
+  let msg = `Logged +${pts} ${catInfo(entry.category).label}${isExp?' ('+entry.subtype+')':''} for ${p.name}${countsTile?'. Tile: '+entry.tile:''}`;
+  if(advance){
+    const next = nextPlayer();
+    state.ui.playerId = next.id;
+    state.ui.turnPlayerId = next.id;
+    state.ui.cat = null;
+    state.ui.expansion = null;
+    msg += ` → ${next.name}'s turn`;
+  }
+  save(); renderGame();
+  toast(msg);
+}
+
+/* ---------- Rulebooks ---------- */
+const BASE_RULEBOOK = BASE_RULEBOOK_NAME;
+const ruleFile = name => 'rulebooks/' + name.toLowerCase().replace(/&/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '.pdf';
+const ALWAYS_RULEBOOKS = ['Expansion Combination', 'House Rules'];
+const ruleEntries = () => [BASE_RULEBOOK, ...orderedEnabled(), ...ALWAYS_RULEBOOKS];
+const MAX_PIXEL_RATIO = 2;
+let ruleOpen = null, ruleDoc = null, ruleSizes = [], ruleToken = 0, ruleZoom = 1, ruleObserver = null, ruleWidth = 0, pdfLibPromise = null;
+const ruleSaved = new Set();
+
+function renderRightView(){
+  const rules = state.ui.rightView==='rules';
+  $('viewScores').hidden = rules;
+  $('viewRules').hidden = !rules;
+  document.querySelectorAll('.vtab').forEach(b=>b.classList.toggle('active', b.dataset.view===state.ui.rightView));
+}
+
+function renderRuleList(){
+  const entries = ruleEntries();
+  $('ruleList').innerHTML = entries.map(name=>{
+    const icon = name===BASE_RULEBOOK ? baseIcon() : (expIcon(name) || '<span class="rule-no-icon"></span>');
+    return `<button class="rule-item" data-rule="${esc(name)}">${icon}<span>${esc(name)}</span></button>`;
+  }).join('');
+  if(ruleOpen && !entries.includes(ruleOpen)) closeRule();
+}
+
+function loadPdfLib(){
+  if(!pdfLibPromise) pdfLibPromise = new Promise((resolve,reject)=>{
+    const tag = document.createElement('script');
+    tag.src = 'vendor/pdfjs/pdf.min.js';
+    tag.onload = ()=>{ window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdfjs/pdf.worker.min.js'; resolve(window.pdfjsLib); };
+    tag.onerror = ()=>{ pdfLibPromise = null; reject(new Error('viewer')); };
+    document.head.appendChild(tag);
+  });
+  return pdfLibPromise;
+}
+
+function ruleMessage(text){
+  $('ruleMsg').textContent = text || '';
+  $('ruleMsg').hidden = !text;
+}
+
+function releaseRule(){
+  if(ruleObserver){ ruleObserver.disconnect(); ruleObserver = null; }
+  $('rulePages').innerHTML = '';
+  if(ruleDoc){ ruleDoc.destroy(); ruleDoc = null; }
+  ruleSizes = [];
+  $('rulePageNo').textContent = '';
+}
+
+async function openRule(name){
+  const token = ++ruleToken;
+  releaseRule();
+  ruleOpen = name; ruleZoom = 1;
+  $('ruleListView').hidden = true;
+  $('ruleReader').hidden = false;
+  $('ruleTitle').textContent = name;
+  ruleMessage('Loading rulebook…');
+  try{
+    const lib = await loadPdfLib();
+    let res;
+    try{ res = await fetch(ruleFile(name)); }
+    catch(e){ if(token===ruleToken) ruleMessage('This rulebook is not saved on this device yet. Open it once while online.'); return; }
+    if(token!==ruleToken) return;
+    if(!res.ok){ ruleMessage(`This rulebook has not been added yet. Expected file: ${ruleFile(name)}`); return; }
+    const data = await res.arrayBuffer();
+    const doc = await lib.getDocument({data, isEvalSupported:false}).promise;
+    if(token!==ruleToken){ doc.destroy(); return; }
+    ruleDoc = doc;
+    const pages = await Promise.all(Array.from({length:doc.numPages},(_,i)=>doc.getPage(i+1)));
+    if(token!==ruleToken) return;
+    ruleSizes = pages.map(p=>{ const v = p.getViewport({scale:1}); return {page:p, w:v.width, h:v.height}; });
+    ruleMessage('');
+    layoutRule(0);
+  }catch(e){
+    if(token===ruleToken) ruleMessage('This rulebook could not be opened. Check that the file is a valid PDF.');
+  }
+}
+
+function closeRule(){
+  ruleToken++;
+  releaseRule();
+  ruleOpen = null;
+  ruleMessage('');
+  $('ruleReader').hidden = true;
+  $('ruleListView').hidden = false;
+}
+
+function currentRulePage(){
+  const box = $('rulePages');
+  const middle = box.scrollTop + box.clientHeight/2;
+  const pages = box.children;
+  for(let i=0;i<pages.length;i++){
+    if(pages[i].offsetTop - box.offsetTop + pages[i].offsetHeight >= middle) return i;
+  }
+  return Math.max(0, pages.length-1);
+}
+
+function showRulePageNo(){
+  if(ruleSizes.length) $('rulePageNo').textContent = `${currentRulePage()+1} / ${ruleSizes.length}`;
+}
+
+function layoutRule(keepPage){
+  const box = $('rulePages');
+  const avail = box.clientWidth - 16;
+  if(!ruleSizes.length || avail<=0) return;
+  ruleWidth = box.clientWidth;
+  if(ruleObserver) ruleObserver.disconnect();
+  box.innerHTML = ruleSizes.map((s,i)=>{
+    const width = Math.round(avail*ruleZoom), height = Math.round(width*s.h/s.w);
+    return `<div class="rule-page" data-page="${i}" style="width:${width}px;height:${height}px"></div>`;
+  }).join('');
+  ruleObserver = new IntersectionObserver(entries=>entries.forEach(en=>{
+    if(en.isIntersecting) drawRulePage(en.target); else clearRulePage(en.target);
+  }), {root:box, rootMargin:'800px 0px'});
+  Array.from(box.children).forEach(el=>ruleObserver.observe(el));
+  const target = box.children[keepPage];
+  box.scrollTop = target ? target.offsetTop - box.offsetTop - 8 : 0;
+  showRulePageNo();
+}
+
+function drawRulePage(el){
+  if(el.firstChild) return;
+  const size = ruleSizes[+el.dataset.page]; if(!size) return;
+  const ratio = Math.min(window.devicePixelRatio||1, MAX_PIXEL_RATIO);
+  const viewport = size.page.getViewport({scale: el.clientWidth/size.w*ratio});
+  const canvas = document.createElement('canvas');
+  canvas.width = viewport.width; canvas.height = viewport.height;
+  el.appendChild(canvas);
+  el._task = size.page.render({canvasContext:canvas.getContext('2d'), viewport});
+  el._task.promise.catch(()=>{});
+}
+
+function clearRulePage(el){
+  if(el._task){ el._task.cancel(); el._task = null; }
+  el.innerHTML = '';
+}
+
+function zoomRule(by){
+  if(!ruleSizes.length) return;
+  const next = Math.min(3, Math.max(1, Math.round((ruleZoom+by)*100)/100));
+  if(next===ruleZoom) return;
+  const page = currentRulePage();
+  ruleZoom = next;
+  layoutRule(page);
+}
+
+// Fetching each ticked rulebook once lets the app save it for offline use
+async function saveActiveRules(){
+  if(!navigator.onLine || !('serviceWorker' in navigator)) return;
+  for(const name of ruleEntries()){
+    if(ruleSaved.has(name)) continue;
+    ruleSaved.add(name);
+    try{ await fetch(ruleFile(name)); }catch(e){ ruleSaved.delete(name); return; }
+  }
+}
+
+function setRightView(view){
+  state.ui.rightView = view;
+  save(); renderRightView();
+  if(view==='rules'){ saveActiveRules(); requestAnimationFrame(()=>{ if($('rulePages').clientWidth!==ruleWidth) layoutRule(currentRulePage()); }); }
+}
+
+/* ---------- Spreadsheet export ---------- */
+function exportData(){
+  const pl = state.players, T = computeTotals();
+  const breakdown = [['Category', ...pl.map(p=>p.name)]];
+  CATS.forEach(c=>breakdown.push([c.plural, ...pl.map(p=>T.byPlayer[p.id][c.id])]));
+  breakdown.push(['Total', ...pl.map(p=>sum(T.byPlayer[p.id]))]);
+  const byExp = [['Expansion', ...pl.map(p=>p.name)]];
+  T.expOrder.forEach(n=>byExp.push([n, ...pl.map(p=>T.byExp[n][p.id]||0)]));
+  const log = [['Turn','Player','Feature','Expansion','Points','Tile played from']];
+  const turns = turnNumbers();
+  state.entries.forEach((e,i)=>{
+    const p = playerById(e.playerId); if(!p) return;
+    log.push([turns[i], p.name, e.hidden ? (e.stay ? 'Extra tile' : 'No score') : catInfo(e.category).label, e.subtype||'', e.points, e.tile||'']);
+  });
+  const tp = tilesPlayed();
+  const tiles = [['Tiles from','Played','Total'], ...tileSources().map(n=>[n, tp.by[n]||0, tilesInSource(n)])];
+  const tt = tileTotals();
+  tiles.push(['Starting tiles', tt.s, tt.s]);
+  tiles.push(['Total', tt.s+tp.total, tt.total]);
+  return {breakdown, byExp, log, tiles};
+}
+
+function downloadResults(){
+  if(!state.players.length) return;
+  const d = exportData();
+  const name = 'carcassonne-scores-' + new Date().toISOString().slice(0,10);
+  if(typeof XLSX !== 'undefined'){
+    const wb = XLSX.utils.book_new();
+    const ws1 = XLSX.utils.aoa_to_sheet(d.breakdown);
+    const totalRow = d.breakdown.length - 1;
+    for(let j=1; j<=state.players.length; j++){
+      const col = XLSX.utils.encode_col(j);
+      ws1[XLSX.utils.encode_cell({r:totalRow, c:j})] = {t:'n', v:d.breakdown[totalRow][j], f:`SUM(${col}2:${col}${totalRow})`};
+    }
+    ws1['!cols'] = [{wch:16}, ...state.players.map(()=>({wch:14}))];
+    XLSX.utils.book_append_sheet(wb, ws1, 'Score Breakdown');
+    if(d.byExp.length > 1){
+      const ws2 = XLSX.utils.aoa_to_sheet(d.byExp);
+      ws2['!cols'] = [{wch:38}, ...state.players.map(()=>({wch:14}))];
+      XLSX.utils.book_append_sheet(wb, ws2, 'By Expansion');
+    }
+    const ws3 = XLSX.utils.aoa_to_sheet(d.log);
+    ws3['!cols'] = [{wch:5},{wch:16},{wch:12},{wch:38},{wch:8},{wch:38}];
+    XLSX.utils.book_append_sheet(wb, ws3, 'Turn Log');
+    const ws4 = XLSX.utils.aoa_to_sheet(d.tiles);
+    ws4['!cols'] = [{wch:38},{wch:8},{wch:8}];
+    XLSX.utils.book_append_sheet(wb, ws4, 'Tiles');
+    XLSX.writeFile(wb, name + '.xlsx');
+  } else {
+    // Fallback if the spreadsheet library could not load (e.g. offline): CSV opens in Excel / Sheets
+    const csv = a => a.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    let out = csv(d.breakdown);
+    if(d.byExp.length > 1) out += '\r\n\r\n' + csv(d.byExp);
+    out += '\r\n\r\n' + csv(d.log) + '\r\n\r\n' + csv(d.tiles);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\ufeff'+out], {type:'text/csv;charset=utf-8'}));
+    a.download = name + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  }
+}
+
+/* ---------- Wiring ---------- */
+function render(){ sanitize(); renderSetup(); renderGame(); }
+
+function buildPointRows(){
+  const btns = Array.from({length:10}, (_,i)=>`<button data-v="${i}">${i}</button>`).join('')
+    + [10,20].map(n=>`<button class="add" data-b="${n}" aria-pressed="false">+${n}</button>`).join('')
+    + '<button class="add" data-clear hidden>Clear</button>';
+  $('rowNext').innerHTML = btns;
+  $('rowStay').innerHTML = btns;
+}
+
+function bind(){
+  document.querySelectorAll('.tab').forEach(b=>b.onclick = ()=>showTab(b.dataset.tab));
+  document.body.addEventListener('click', e=>{
+    const g = e.target.closest('[data-goto]'); if(g) showTab(g.dataset.goto);
+  });
+
+  // setup: players
+  $('addPlayerBtn').onclick = addPlayer;
+  $('newPlayerName').addEventListener('keydown', e=>{ if(e.key==='Enter') addPlayer(); });
+  $('colorPicks').onclick = e=>{
+    const el = e.target.closest('[data-color]');
+    if(!el || el.classList.contains('taken')) return;
+    chosenColor = el.dataset.color; renderSetup();
+  };
+  $('playerList').onclick = e=>{
+    const b = e.target.closest('[data-rm]'); if(b) removePlayer(b.dataset.rm);
+  };
+
+  // setup: expansions
+  $('expChecklist').addEventListener('change', e=>{
+    const cb = e.target.closest('input[type=checkbox]'); if(!cb) return;
+    const item = EXPANSION_GROUPS[+cb.dataset.g].items[+cb.dataset.i];
+    state.enabled = cb.checked ? [...new Set([...state.enabled, item])] : state.enabled.filter(x=>x!==item);
+    save(); render();
+  });
+  $('expChecklist').addEventListener('click', e=>{
+    const all = e.target.closest('[data-gall]'), none = e.target.closest('[data-gnone]');
+    if(all){ const items = EXPANSION_GROUPS[+all.dataset.gall].items; state.enabled = [...new Set([...state.enabled, ...items])]; save(); render(); }
+    if(none){ const items = EXPANSION_GROUPS[+none.dataset.gnone].items; state.enabled = state.enabled.filter(x=>!items.includes(x)); save(); render(); }
+  });
+
+  $('startBtn').onclick = ()=>{ showTab('game'); saveActiveRules(); };
+  $('clearScoresBtn').onclick = ()=>{
+    if(!state.entries.length) return;
+    if(!confirm('Clear all logged scores? Players and expansions are kept.')) return;
+    state.entries = []; lastAddedId = null; state.ui.finalScoring = false; save(); render();
+  };
+  $('resetBtn').onclick = ()=>{
+    if(!confirm('Reset everything? This clears players, expansions and all scores.')) return;
+    state = freshState(); chosenColor = null; lastAddedId = null; bonus = 0; save(); render();
+  };
+
+  // game
+  $('gPlayers').onclick = e=>{
+    const b = e.target.closest('[data-p]'); if(!b) return;
+    state.ui.playerId = b.dataset.p; save(); renderGame();
+  };
+  $('gFeatures').onclick = e=>{
+    const b = e.target.closest('[data-c]'); if(!b) return;
+    state.ui.cat = state.ui.cat===b.dataset.c ? null : b.dataset.c;
+    sanitize(); defaultExpansionFromTile(); save(); renderGame();
+  };
+  $('finalBtn').onclick = ()=>{
+    state.ui.finalScoring = !state.ui.finalScoring;
+    bonus = 0;
+    sanitize(); save(); renderGame();
+  };
+  $('turnNote').addEventListener('click', e=>{
+    if(e.target.id==='setTurnBtn'){ state.ui.turnPlayerId = state.ui.playerId; save(); renderGame(); }
+  });
+  $('noScoreBtn').onclick = ()=>logTileOnly(true);
+  $('extraTileBtn').onclick = ()=>logTileOnly(false);
+  $('undoTileBtn').onclick = undoTile;
+  const left = document.querySelector('.left');
+  left.addEventListener('click', e=>{
+    const item = e.target.closest('.dd-item');
+    if(item){ chooseDropdown(item.parentElement.id.replace('-list',''), item.dataset.value); return; }
+    const btn = e.target.closest('.dd');
+    if(btn && !btn.disabled){
+      if(btn.getAttribute('aria-expanded')==='true') closeDropdown(); else openDropdown(btn);
+    }
+  });
+  left.addEventListener('keydown', e=>{
+    const list = e.target.closest('.dd-list'); if(!list) return;
+    const items = [...list.querySelectorAll('.dd-item')], i = items.indexOf(e.target);
+    if(e.key==='Escape'){ e.preventDefault(); closeDropdown(true); }
+    if(e.key==='Tab') closeDropdown();
+    if(e.key==='ArrowDown'){ e.preventDefault(); (items[i+1]||items[0]).focus(); }
+    if(e.key==='ArrowUp'){ e.preventDefault(); (items[i-1]||items[items.length-1]).focus(); }
+    if(e.key==='Home'){ e.preventDefault(); items[0].focus(); }
+    if(e.key==='End'){ e.preventDefault(); items[items.length-1].focus(); }
+  });
+  document.addEventListener('click', e=>{ if(!e.target.closest('.dd-wrap') && !e.target.closest('label[for]')) closeDropdown(); });
+  left.addEventListener('scroll', closeDropdownOnScroll, {passive:true});
+  window.addEventListener('scroll', closeDropdownOnScroll, {passive:true});
+  window.addEventListener('resize', ()=>closeDropdown());
+  const pointTap = advance => e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    if(b.dataset.clear!==undefined){ bonus = 0; renderBonus(); return; }
+    if(b.dataset.b){
+      if(state.ui.finalScoring) bonus = Math.min(MAX_FINAL_BONUS, bonus+10);
+      else bonus = bonus === +b.dataset.b ? 0 : +b.dataset.b;
+      renderBonus(); return;
+    }
+    logScore(+b.dataset.v + bonus, advance);
+  };
+  $('rowNext').onclick = pointTap(true);
+  $('rowStay').onclick = pointTap(false);
+  $('logWrap').onclick = e=>{
+    const b = e.target.closest('[data-del]'); if(!b) return;
+    state.entries = state.entries.filter(x=>x.id!==b.dataset.del); save(); renderGame();
+  };
+  $('downloadBtn').onclick = downloadResults;
+
+  // rulebooks
+  document.querySelector('.view-switch').onclick = e=>{
+    const b = e.target.closest('[data-view]'); if(b) setRightView(b.dataset.view);
+  };
+  $('ruleList').onclick = e=>{
+    const b = e.target.closest('[data-rule]'); if(b) openRule(b.dataset.rule);
+  };
+  $('ruleBack').onclick = closeRule;
+  $('ruleZoomIn').onclick = ()=>zoomRule(.25);
+  $('ruleZoomOut').onclick = ()=>zoomRule(-.25);
+  $('rulePages').addEventListener('scroll', ()=>requestAnimationFrame(showRulePageNo), {passive:true});
+  if(window.ResizeObserver){
+    let resizeTimer;
+    new ResizeObserver(()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(()=>{
+        const w = $('rulePages').clientWidth;
+        if(w>0 && w!==ruleWidth && ruleSizes.length) layoutRule(currentRulePage());
+      }, 150);
+    }).observe($('rulePages'));
+  }
+}
+
+(function init(){
+  loadState();
+  sanitize();
+  buildPointRows();
+  bind();
+  render();
+  showTab(state.players.length ? 'game' : 'setup');
+
+  // Installable + offline: cache the app, and ask the browser not to evict saved games
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  }
+  if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+})();
+</script>
+</body>
+</html>
