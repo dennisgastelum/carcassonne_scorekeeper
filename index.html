@@ -749,6 +749,16 @@ function preloadSounds(){
   if(state.ui.sound === false || !audio()) return;
   new Set([...Object.values(FEATURE_SOUNDS), ...Object.values(EXPANSION_SOUNDS), ...Object.values(EVENT_SOUNDS), 'sheep', 'wolf']).forEach(loadSound);
 }
+/* ---------- Screen stays on while the app is open ---------- */
+let wakeLock = null;
+async function keepScreenOn(){
+  if(!('wakeLock' in navigator) || document.visibilityState !== 'visible' || wakeLock) return;
+  try{
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', ()=>{ wakeLock = null; });
+  }catch(e){ wakeLock = null; } // refused, for example in battery saver: the screen simply sleeps as usual
+}
+
 function renderSoundBtn(){
   const on = state.ui.sound !== false;
   $('soundBtn').textContent = on ? 'Sound on' : 'Sound off';
@@ -1747,6 +1757,11 @@ function bind(){
   renderSoundBtn();
   // Browsers only allow sound after a tap, so the sounds load on the first one
   document.addEventListener('pointerdown', preloadSounds, {once:true});
+  // Keep the screen on while the app is open. Android releases this when the app is in the
+  // background, so it is asked for again whenever the app comes back to the front or is tapped.
+  keepScreenOn();
+  document.addEventListener('visibilitychange', keepScreenOn);
+  document.addEventListener('pointerdown', keepScreenOn);
   persistStorage();
 
   // Installable + offline: cache the app, and ask the browser not to evict saved games
