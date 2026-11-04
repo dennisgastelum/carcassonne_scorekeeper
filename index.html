@@ -1706,6 +1706,8 @@ function bind(){
     state.ui.sound = state.ui.sound === false;
     save(); renderSoundBtn();
     preloadSounds();
+    // A short test sound when switching on, so the volume buttons adjust the media volume
+    playSound('granary');
   };
   $('rulePickBtn').onclick = ()=>$('rulePick').click();
   $('rulePick').onchange = async e=>{
