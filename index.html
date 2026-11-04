@@ -276,20 +276,22 @@
     h1{font-size:1rem;}
     .tab{padding:9px 12px;}
   }
-  /* Landscape tablets: tighten the Log a Score card so it fits the screen without scrolling */
-  @media (min-width:901px) and (max-height:1000px){
+  /* Landscape tablets: the Log a Score card fills the screen height. The buttons start at a compact
+     size (about 615px of content) and the six main rows share any extra height through --grow. */
+  @media (min-width:901px){
+    :root{--grow:clamp(0px, calc((100vh - 645px) / 6), 60px);}
     main{padding:8px 12px;}
     #tab-game.active{gap:10px;}
     .left{gap:7px; padding:10px 12px;}
     .row-label{margin-bottom:4px;}
-    .pbtn{min-height:46px; padding:4px 6px;}
-    .fbtn{min-height:60px; padding:4px 2px; gap:4px;}
-    .fbtn .cat-icon{width:28px; height:28px;}
-    .final-btn{min-height:52px;}
-    .final-btn img{height:36px;}
-    .tile-actions .btn{min-height:38px;}
+    .pbtn{flex-basis:60px; min-height:calc(46px + var(--grow)); padding:4px 6px; font-size:calc(1rem + var(--grow) * .06);}
+    .fbtn{min-height:calc(60px + var(--grow)); padding:4px 2px; gap:4px; font-size:calc(.85rem + var(--grow) * .05);}
+    .fbtn .cat-icon{width:calc(28px + var(--grow) * .5); height:calc(28px + var(--grow) * .5);}
+    .final-btn{min-height:calc(52px + var(--grow));}
+    .final-btn img{height:calc(36px + var(--grow) * .5);}
+    .tile-actions .btn{min-height:calc(38px + var(--grow));}
     .dd{min-height:38px;}
-    .pt-row button{height:46px; font-size:1.05rem;}
+    .pt-row button{height:calc(46px + var(--grow)); font-size:calc(1.05rem + var(--grow) * .08);}
     .row-label.pt-label{padding:3px 22px 4px;}
     .log-card h2, .score-card h2{margin-bottom:6px;}
     .score-card .card-head{padding-top:10px;}
