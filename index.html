@@ -728,15 +728,22 @@ function loadSound(name){
   }
   return soundBuffers[name];
 }
-function playSound(name){
-  if(!name || state.ui.sound === false) return;
+// Plays sounds one after another, each starting when the one before it ends
+function playSounds(names){
+  names = names.filter(Boolean);
+  if(!names.length || state.ui.sound === false) return;
   const ctx = audio(); if(!ctx) return;
-  loadSound(name).then(buffer=>{
-    if(!buffer) return;
-    const src = ctx.createBufferSource();
-    src.buffer = buffer; src.connect(ctx.destination); src.start();
+  Promise.all(names.map(loadSound)).then(buffers=>{
+    let at = ctx.currentTime + 0.02;
+    buffers.forEach(buffer=>{
+      if(!buffer) return;
+      const src = ctx.createBufferSource();
+      src.buffer = buffer; src.connect(ctx.destination); src.start(at);
+      at += buffer.duration;
+    });
   });
 }
+function playSound(name){ playSounds([name]); }
 // Loads every sound after the first tap, so the first play of each is not delayed
 function preloadSounds(){
   if(state.ui.sound === false || !audio()) return;
@@ -1133,9 +1140,11 @@ function logScore(pts, advance){
   save(); renderGame();
   toast(msg);
   flashPanel('flash-good'); // a logged score, including 0, turns green
-  playSound(scoreSound(entry.category, entry.subtype, pts));
-  announceMilestone(p, totalBefore);
-  checkWonderNotes(p);
+  // Feature sound first, then the 50-point sound, then the wonder sound
+  const sounds = [scoreSound(entry.category, entry.subtype, pts)];
+  if(announceMilestone(p, totalBefore)) sounds.push(EVENT_SOUNDS.milestone);
+  if(checkWonderNotes(p)) sounds.push(EVENT_SOUNDS.wonder);
+  playSounds(sounds);
 }
 
 /* ---------- Milestones: a note each time a player passes 50, 100, 150 ... ---------- */
@@ -1210,7 +1219,6 @@ function showNextNote(){
   box.hidden = false;
   // Restart the entrance animation for each note
   box.style.animation = 'none'; void box.offsetWidth; box.style.animation = '';
-  if(note.sound) playSound(note.sound);
   clearTimeout(noteTimer);
   noteTimer = setTimeout(showNextNote, note.ms || 4500);
 }
@@ -1219,7 +1227,7 @@ function showNextNote(){
 function announceMilestone(p, before){
   const after = playerTotal(p.id);
   const passed = Math.floor(after/MILESTONE_STEP) - Math.floor(before/MILESTONE_STEP);
-  if(passed <= 0) return;
+  if(passed <= 0) return false;
   const milestone = Math.floor(after/MILESTONE_STEP) * MILESTONE_STEP;
   let i;
   do{ i = Math.floor(Math.random() * MILESTONE_QUOTES.length); }
@@ -1227,7 +1235,8 @@ function announceMilestone(p, before){
   lastMilestoneQuote = i;
   // 50, 150, 250 ... use the 50 tile; 100, 200, 300 ... use the 100 tile
   const tile = milestone % 100 === 50 ? 'icons/milestones/tile-50.jpg' : 'icons/milestones/tile-100.jpg';
-  queueNote({name: p.name, meeple: MEEPLES[p.color], text: `has reached ${milestone} points.`, img: tile, quote: MILESTONE_QUOTES[i], ms: 10000, sound: EVENT_SOUNDS.milestone});
+  queueNote({name: p.name, meeple: MEEPLES[p.color], text: `has reached ${milestone} points.`, img: tile, quote: MILESTONE_QUOTES[i], ms: 10000});
+  return true;
 }
 
 /* Wonders of Humanity (only when that expansion is ticked).
@@ -1236,18 +1245,22 @@ function announceMilestone(p, before){
 const WONDER_EXPANSION = 'Wonders of Humanity';
 const WONDER_FIRST_AT = 10, WONDER_FIRST_STEP = 5, WONDER_SECOND_AT = 50;
 function checkWonderNotes(p){
-  if(!state.enabled.includes(WONDER_EXPANSION)) return;
+  if(!state.enabled.includes(WONDER_EXPANSION)) return false;
   const wn = state.wonderNotes, total = playerTotal(p.id);
   const told = wn.first.length; // players already sent to choose a first wonder
+  let shown = false;
   if(!wn.first.includes(p.id) && told < state.players.length && total >= WONDER_FIRST_AT + WONDER_FIRST_STEP*told){
     wn.first.push(p.id);
     queueWonderNote(p, 'must choose a wonder and build it in the next turn.');
+    shown = true;
   }
   if(!wn.second.includes(p.id) && total >= WONDER_SECOND_AT){
     wn.second.push(p.id);
     queueWonderNote(p, 'must choose a second wonder and build it in the next turn, if playing with 2 wonders.');
+    shown = true;
   }
   save();
+  return shown;
 }
 // Each wonder note shows a random wonder's picture with one of its quotes
 const WONDERS = [
@@ -1290,7 +1303,7 @@ const WONDERS = [
 function queueWonderNote(p, text){
   const wonder = WONDERS[Math.floor(Math.random() * WONDERS.length)];
   const quote = wonder.quotes[Math.floor(Math.random() * wonder.quotes.length)];
-  queueNote({name: p.name, meeple: MEEPLES[p.color], text, img: wonder.img, quote, ms: 12000, sound: EVENT_SOUNDS.wonder});
+  queueNote({name: p.name, meeple: MEEPLES[p.color], text, img: wonder.img, quote, ms: 12000});
 }
 
 /* ---------- Rulebooks ---------- */
