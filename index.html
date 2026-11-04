@@ -64,6 +64,7 @@
   .card h2{font-family:'Fraunces',Georgia,serif; font-size:1rem; font-weight:600; margin:0 0 10px; display:flex; align-items:center; gap:8px;}
   .card h2::before{content:''; width:8px; height:8px; background:var(--ink); display:inline-block; transform:rotate(45deg);}
   .card-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .head-btns{display:flex; gap:6px; flex-shrink:0;}
   .card-head h2{margin:0;}
   .btn{padding:10px 16px; border:1.5px solid var(--ink); background:var(--ink); color:var(--parchment); font-weight:600; font-size:.9rem; cursor:pointer;}
   .btn.secondary{background:transparent; color:var(--ink);}
@@ -197,6 +198,11 @@
   .rule-item .cat-icon, .rule-no-icon{width:24px; height:24px; flex-shrink:0;}
   .rule-bar{flex:0 0 auto; display:flex; flex-wrap:wrap; align-items:center; gap:8px;}
   .rule-bar .btn{min-height:38px;}
+  .rule-item.missing{border-style:dashed; color:var(--ink-soft);}
+  .rule-tag{margin-left:auto; font-size:.75rem; font-weight:500; color:var(--ink-soft); white-space:nowrap;}
+  .rule-status-row{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
+  .rule-status-row .rule-msg{margin:0; flex:1 1 auto; min-width:0;}
+  .rule-status-row .text-btn{flex:0 0 auto;}
   .rule-title{flex:1 1 120px; min-width:0; font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:.95rem;}
   .rule-page-no{font-size:.8rem; color:var(--ink-soft); white-space:nowrap;}
   .rule-msg{margin:0; padding:10px 12px; background:var(--tile-bg); border:1px solid var(--line); font-size:.88rem; overflow-wrap:anywhere;}
@@ -215,8 +221,24 @@
   .log-sep{color:var(--ink-soft); opacity:.7;}
   .tile .pts{font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:1.1rem;}
   .tile .del{border:none; background:none; color:var(--ink-soft); font-size:1rem; cursor:pointer; padding:10px 12px;}
-  .score-card{flex:0 1 auto; max-height:55%; overflow:auto; padding-top:0; padding-bottom:0;}
+  .score-card{flex:0 1 auto; max-height:55%; overflow:hidden; display:flex; flex-direction:column; padding-top:0; padding-bottom:0;}
   .score-card .card-head{padding-top:14px;}
+  #scoreWrap{flex:1 1 auto; min-height:0; overflow:auto;}
+  .score-foot{flex:0 0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 12px; margin:0 -14px; padding:8px 14px 12px; border-top:1px solid var(--line); background:var(--card-bg);}
+  #scoreTiles{flex:1 1 0; min-width:0;}
+  #scoreTiles .score-tiles{margin:0;}
+  .text-btn{border:none; background:none; padding:4px 0; font:inherit; font-size:.8rem; font-weight:600; color:var(--ink-soft); text-decoration:underline; cursor:pointer; white-space:nowrap;}
+  .text-btn:disabled{opacity:.4; cursor:not-allowed;}
+  .text-btn:hover:not(:disabled){color:var(--ink);}
+
+  /* Game tab has no header: the Setup button in the Log a Score card takes its place */
+  body.in-game .top{display:none;}
+
+  /* Flash of the Log a Score card: green when points are scored, red when nothing is scored */
+  .left.flash-good{animation:flashGood 1.1s ease-out;}
+  .left.flash-bad{animation:flashBad 1.1s ease-out;}
+  @keyframes flashGood{from{background-color:#A9CFAE;} to{background-color:var(--card-bg);}}
+  @keyframes flashBad{from{background-color:#E8A090;} to{background-color:var(--card-bg);}}
   #scoreWrap > :last-child{margin-bottom:14px;}
   thead th{position:sticky; top:0; z-index:1; background:var(--card-bg); box-shadow:inset 0 -1px 0 var(--line);}
   tbody td:not(:first-child){white-space:nowrap;}
@@ -254,6 +276,38 @@
     h1{font-size:1rem;}
     .tab{padding:9px 12px;}
   }
+  /* Landscape tablets: tighten the Log a Score card so it fits the screen without scrolling */
+  @media (min-width:901px) and (max-height:1000px){
+    main{padding:8px 12px;}
+    #tab-game.active{gap:10px;}
+    .left{gap:7px; padding:10px 12px;}
+    .row-label{margin-bottom:4px;}
+    .pbtn{min-height:46px; padding:4px 6px;}
+    .fbtn{min-height:60px; padding:4px 2px; gap:4px;}
+    .fbtn .cat-icon{width:28px; height:28px;}
+    .final-btn{min-height:52px;}
+    .final-btn img{height:36px;}
+    .tile-actions .btn{min-height:38px;}
+    .dd{min-height:38px;}
+    .pt-row button{height:46px; font-size:1.05rem;}
+    .row-label.pt-label{padding:3px 22px 4px;}
+    .log-card h2, .score-card h2{margin-bottom:6px;}
+    .score-card .card-head{padding-top:10px;}
+    .score-foot{padding-bottom:8px;}
+  }
+
+  /* Notes pop up at the top of the screen: milestones (50, 100 ...) and Wonders of Humanity */
+  .note{position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:40; width:min(92vw,440px); display:flex; flex-direction:column; gap:8px; padding:12px 16px; background:var(--card-bg); border:2px solid var(--ink); box-shadow:0 6px 18px rgba(42,40,32,.3); cursor:pointer; animation:noteIn .35s ease-out;}
+  .note-head{display:flex; align-items:center; justify-content:center; gap:10px; min-width:0;}
+  .note-meeple{width:28px; height:28px; flex-shrink:0;}
+  .note-name{font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:1.25rem; line-height:1.1; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
+  .note-num{font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:2rem; line-height:1; color:var(--ink);}
+  .note-text{margin:0; font-size:.95rem; font-weight:600; color:var(--ink); text-align:center; text-wrap:balance;}
+  .note-body{display:flex; align-items:center; gap:12px; min-width:0;}
+  .note-img{width:min(40%,130px); height:auto; flex-shrink:0; object-fit:contain;}
+  .note-quote{margin:0; font-size:.9rem; line-height:1.35; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
+  @keyframes noteIn{from{opacity:0; transform:translate(-50%,-12px);} to{opacity:1; transform:translate(-50%,0);}}
+  @media (prefers-reduced-motion:reduce){ .note{animation:none;} }
 </style>
 </head>
 <body>
@@ -305,7 +359,13 @@
   <!-- TAB 2: GAME -->
   <div id="tab-game" class="tabpane">
     <section class="card left">
-      <h2>Log a Score</h2>
+      <div class="card-head">
+        <h2>Log a Score</h2>
+        <div class="head-btns">
+          <button class="btn secondary small" id="soundBtn" aria-pressed="true">Sound on</button>
+          <button class="btn secondary small" data-goto="setup">Setup</button>
+        </div>
+      </div>
       <div id="noPlayers" style="display:none;">
         <p class="empty">Add players in Setup first. <button class="btn small secondary" data-goto="setup">Go to Setup</button></p>
       </div>
@@ -349,14 +409,25 @@
       <section class="card score-card">
         <div class="card-head">
           <h2>Score Breakdown</h2>
-          <button class="btn small" id="downloadBtn">⬇ Download spreadsheet</button>
         </div>
         <div id="scoreWrap"></div>
+        <div class="score-foot">
+          <div id="scoreTiles"></div>
+          <button class="text-btn" id="downloadBtn">⬇ Download spreadsheet</button>
+        </div>
       </section>
       </div>
       <section class="card" id="viewRules" hidden>
         <div id="ruleListView">
-          <h2>Rulebooks</h2>
+          <div class="card-head">
+            <h2>Rulebooks</h2>
+            <button class="btn small" id="rulePickBtn">Add rulebook PDFs</button>
+          </div>
+          <input type="file" id="rulePick" accept="application/pdf,.pdf" multiple hidden>
+          <div class="rule-status-row">
+            <p class="rule-msg" id="ruleStatus" hidden></p>
+            <button class="text-btn" id="ruleClearBtn">Remove all</button>
+          </div>
           <div class="rule-list" id="ruleList"></div>
         </div>
         <div id="ruleReader" hidden>
@@ -546,7 +617,7 @@ const playerById = id => state.players.find(p=>p.id===id);
 
 const BASE_RULEBOOK_NAME = 'Base Game';
 function freshState(){
-  return {players:[], enabled:[], entries:[], ui:{playerId:null, turnPlayerId:null, cat:null, expansion:null, finalScoring:false, rightView:'scores', tileFrom:null}};
+  return {players:[], enabled:[], entries:[], wonderNotes:{first:[], second:[]}, ui:{playerId:null, turnPlayerId:null, cat:null, expansion:null, finalScoring:false, rightView:'scores', tileFrom:null, sound:true}};
 }
 let state = freshState();
 let chosenColor = null;
@@ -565,6 +636,7 @@ function loadState(){
       players: Array.isArray(s.players) ? s.players : f.players,
       enabled: Array.isArray(s.enabled) ? s.enabled : f.enabled,
       entries: Array.isArray(s.entries) ? s.entries : f.entries,
+      wonderNotes: s.wonderNotes && Array.isArray(s.wonderNotes.first) && Array.isArray(s.wonderNotes.second) ? s.wonderNotes : f.wonderNotes,
       ui: Object.assign(f.ui, s.ui || {}),
     };
   }catch(e){}
@@ -579,6 +651,8 @@ function sanitize(){
   if(!ids.includes(state.ui.playerId)) state.ui.playerId = ids[0] || null;
   if(!ids.includes(state.ui.turnPlayerId)) state.ui.turnPlayerId = state.ui.playerId;
   state.enabled = state.enabled.filter(x=>ALL_EXPANSIONS.includes(x));
+  state.wonderNotes.first = state.wonderNotes.first.filter(id=>ids.includes(id));
+  state.wonderNotes.second = state.wonderNotes.second.filter(id=>ids.includes(id));
   if(!CATS.some(c=>c.id===state.ui.cat)) state.ui.cat = null;
   if(state.ui.rightView!=='rules') state.ui.rightView = 'scores';
   if(state.ui.tileFrom && !tileSources().includes(state.ui.tileFrom)) state.ui.tileFrom = null;
@@ -590,6 +664,86 @@ function sanitize(){
 function showTab(t){
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('active', p.id==='tab-'+t));
+  document.body.classList.toggle('in-game', t==='game');
+}
+
+// Briefly colours the Log a Score card: green when points are scored, red when nothing is
+function flashPanel(kind){
+  const el = document.querySelector('.left');
+  if(!el) return;
+  el.classList.remove('flash-good','flash-bad');
+  void el.offsetWidth; // restart the animation if it is already running
+  el.classList.add(kind);
+  setTimeout(()=>el.classList.remove(kind), 1150);
+}
+
+/* ---------- Sounds: recordings in the sounds folder, saved on the tablet for offline use ---------- */
+// Played when points are logged, by the feature that gave them
+const FEATURE_SOUNDS = {road:'horsegallop', city:'dropmetal', monastery:'monkcomplete', field:'horsestrot'};
+// Played when points come from an expansion. Expansions not listed play nothing.
+const EXPANSION_SOUNDS = {
+  'Abbot':'monkcomplete', 'River':'dock4',
+  '1 - The Flying Machines':'trebuchet', '2 - The Messages':'horsesound', '3 - The Ferries':'wave',
+  '4 - The Gold Mines':'gate', '5 - Magician & Witch':'viking', '6 - The Robbers':'spies', '7 - The Crop Circles':'govcentre',
+  '1. Inns & Cathedrals':'castlevitalis', '2. Traders & Builders':'chariotmove', '3. Dragon & Fairy':'relicpickup',
+  '4. Towers & Thieves':'tower', '5. Messengers & Mayors':'bell2', '6. Jousts & Crests':'sword',
+  '7. Siege & Defense':'readymilitary', '8. Castles & Bridges':'technology', '10. Circus & Artists':'circus',
+  '11. Ghosts, Castles and Cemeteries':'temple',
+  'Hansa':'boat', 'Spring':'granary', 'Summer':'granary', 'Autumn':'granary', 'Winter':'granary',
+  'Bets':'storagepit', 'German Cathedrals':'wonder1', 'Drawbridges':'walls', 'Festival':'market1',
+  'Fruit-Bearing Trees':'market1', 'Markets of Leipzig':'market2', 'Monasteries in Germany':'wonder1',
+  'Peasant Revolts':'market2', 'Phantom':'temple', 'Signposts':'trebuchet', 'Tollkeepers':'metal-light',
+  'Watchtowers':'tower', 'Wonders of Humanity':'townbells', 'Castles in Germany':'castleselect',
+  'Spell Circles':'temple', 'Gifts':'tribute', 'Halflings':'metal-light', 'Japanese Buildings':'wonder1',
+  'Barber-Surgeons':'bell2', 'Spiel 25':'market1', 'Spiel 26':'market1', 'Labyrinth':'relicpickup'
+};
+const EVENT_SOUNDS = {riverSetup:'dock4', finalScoring:'victory', wonder:'wonder2', milestone:'viking', extraTile:'horsesound', undo:'farmdepleted', noScore:'storagepit'};
+// Sheep & Shepherds: sheep for points, wolves for 0. Any other 0 plays the no-score sound.
+function scoreSound(cat, expansion, pts){
+  if(cat === 'expansion' && expansion === '9. Sheep & Shepherds') return pts > 0 ? 'sheep' : 'wolf';
+  if(pts === 0) return EVENT_SOUNDS.noScore;
+  if(cat === 'expansion') return EXPANSION_SOUNDS[expansion] || null;
+  return FEATURE_SOUNDS[cat] || null;
+}
+let audioCtx = null;
+const soundBuffers = {};
+function audio(){
+  if(!audioCtx){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return null;
+    audioCtx = new Ctx();
+  }
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+// Each sound is fetched and decoded once, then reused
+function loadSound(name){
+  if(!soundBuffers[name]){
+    soundBuffers[name] = fetch(`sounds/${name}.mp3`)
+      .then(r=>{ if(!r.ok) throw new Error('missing'); return r.arrayBuffer(); })
+      .then(buf=>new Promise((resolve,reject)=>audio().decodeAudioData(buf, resolve, reject)))
+      .catch(()=>null);
+  }
+  return soundBuffers[name];
+}
+function playSound(name){
+  if(!name || state.ui.sound === false) return;
+  const ctx = audio(); if(!ctx) return;
+  loadSound(name).then(buffer=>{
+    if(!buffer) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer; src.connect(ctx.destination); src.start();
+  });
+}
+// Loads every sound after the first tap, so the first play of each is not delayed
+function preloadSounds(){
+  if(state.ui.sound === false || !audio()) return;
+  new Set([...Object.values(FEATURE_SOUNDS), ...Object.values(EXPANSION_SOUNDS), ...Object.values(EVENT_SOUNDS), 'sheep', 'wolf']).forEach(loadSound);
+}
+function renderSoundBtn(){
+  const on = state.ui.sound !== false;
+  $('soundBtn').textContent = on ? 'Sound on' : 'Sound off';
+  $('soundBtn').setAttribute('aria-pressed', on ? 'true' : 'false');
 }
 
 /* ---------- Setup tab ---------- */
@@ -788,7 +942,7 @@ function turnNumbers(){
 // Symbols for what scored / which tile it came from. The title keeps the words for hover and screen readers.
 function logDescription(e, c){
   const source = e.from || e.tile;
-  const noScore = e.hidden ? (e.stay ? 'Extra tile' : 'No score') : null;
+  const noScore = e.hidden ? (e.spring ? 'River spring' : e.stay ? (e.tile ? 'Extra tile' : 'No score, same turn') : 'No score') : null;
   const scoredHtml = noScore ? esc(noScore) : (e.subtype ? expIcon(e.subtype) : catIcon(c));
   const scoredText = noScore || e.subtype || c.label;
   const owner = source && e.turn && e.turn!==e.playerId ? playerById(e.turn) : null;
@@ -832,7 +986,7 @@ function computeTotals(){
 
 function renderScore(){
   const wrap = $('scoreWrap'), pl = state.players;
-  if(!pl.length){ wrap.innerHTML = '<p class="empty">Add players in Setup to see the breakdown.</p>'; return; }
+  if(!pl.length){ wrap.innerHTML = '<p class="empty">Add players in Setup to see the breakdown.</p>'; $('scoreTiles').innerHTML = ''; return; }
   const T = computeTotals();
   const played = tilesPlayed(), tt = tileTotals();
   const basePlayed = played.by[BASE_RULEBOOK_NAME]||0, riverPlayed = played.by.River||0;
@@ -849,8 +1003,10 @@ function renderScore(){
       });
     }
   });
-  h += '<tr class="total-row"><td>Total</td>' + totals.map(t=>`<td class="${t===top && t>0?'leader':''}">${t}</td>`).join('') + '</tr></tbody></table>' + `<p class="tile-sum score-tiles"><strong>Tiles in this game</strong> ${tileMark('s', tt.s)}${tileMark('r', tt.r)}<span class="tile-mark" title="Base Game">${baseIcon()}${basePlayed}/${BASE_TILES.l}</span>${tileMark('l', `${landPlayed}/${tt.l-BASE_TILES.l}`)}<span class="tile-part">Total <b id="tilesPlayedTotal">${tt.s+played.total}/${tt.total}</b></span></p>`;
+  h += '<tr class="total-row"><td>Total</td>' + totals.map(t=>`<td class="${t===top && t>0?'leader':''}">${t}</td>`).join('') + '</tr></tbody></table>';
   wrap.innerHTML = h;
+  // The tile count sits in a footer outside the scrolling table, so it stays visible
+  $('scoreTiles').innerHTML = `<p class="tile-sum score-tiles"><strong>Tiles in this game</strong> ${tileMark('s', tt.s)}${tileMark('r', tt.r)}<span class="tile-mark" title="Base Game">${baseIcon()}${basePlayed}/${BASE_TILES.l}</span>${tileMark('l', `${landPlayed}/${tt.l-BASE_TILES.l}`)}<span class="tile-part">Total <b id="tilesPlayedTotal">${tt.s+played.total}/${tt.total}</b></span></p>`;
 }
 
 let toastTimer;
@@ -858,6 +1014,7 @@ function toast(msg, isErr){
   const t = $('toast');
   t.textContent = msg;
   t.className = 'toast' + (isErr ? ' err' : '');
+  if(isErr) flashPanel('flash-bad'); // a red message also turns the card red
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>{ t.textContent=''; }, 5000);
 }
@@ -866,6 +1023,33 @@ function toast(msg, isErr){
 function nextPlayer(){
   const i = state.players.findIndex(x=>x.id===state.ui.turnPlayerId);
   return state.players[(i+1) % state.players.length];
+}
+
+/* With River ticked, a new game starts by building the river: the spring is placed first
+   (no turn), then each remaining river tile is one turn with no score, in player order.
+   Only runs on a fresh game, so pressing Start game again later changes nothing. */
+function logRiverStart(){
+  if(!state.enabled.includes('River') || !state.players.length || state.entries.length) return;
+  const riverTiles = tileTotals().r;
+  if(riverTiles < 1) return;
+  const n = state.players.length;
+  let start = state.players.findIndex(x=>x.id===state.ui.turnPlayerId);
+  if(start < 0) start = 0;
+  const first = state.players[start];
+  state.entries.push({id:uid(), playerId:first.id, category:null, subtype:null, points:0, stay:true, hidden:true, spring:true, tile:'River', turn:first.id});
+  const turns = riverTiles - 1;
+  for(let k=0; k<turns; k++){
+    const p = state.players[(start + k) % n];
+    state.entries.push({id:uid(), playerId:p.id, category:null, subtype:null, points:0, stay:false, hidden:true, tile:'River', turn:p.id});
+  }
+  const next = state.players[(start + turns) % n];
+  state.ui.playerId = next.id; state.ui.turnPlayerId = next.id;
+  state.ui.cat = null; state.ui.expansion = null; state.ui.tileFrom = null; bonus = 0;
+  lastAddedId = state.entries[state.entries.length-1].id;
+  save(); renderGame();
+  toast(`River built: spring and ${turns} turns with no score → ${next.name}'s turn`);
+  flashPanel('flash-good');
+  playSound(EVENT_SOUNDS.riverSetup);
 }
 
 // A tile with no score
@@ -883,6 +1067,8 @@ function logTileOnly(advance){
     msg += ` → ${next.name}'s turn`;
   }
   save(); renderGame(); toast(msg);
+  if(advance) flashPanel('flash-good'); // No score, next turn is a turn ended, shown green
+  playSound(advance ? EVENT_SOUNDS.noScore : EVENT_SOUNDS.extraTile);
 }
 // Removes the latest tile with its log line, including any points on that line.
 // The turn only moves back if nothing has been logged since.
@@ -903,11 +1089,25 @@ function undoTile(){
   const p = playerById(e.playerId);
   save(); renderGame();
   toast(`Undone: ${e.hidden ? (e.stay ? 'extra tile' : 'no score') : '+'+e.points+' '+catInfo(e.category).label} for ${p?p.name:'player'}. Tile: ${e.tile}`);
+  playSound(EVENT_SOUNDS.undo);
 }
 
 function logScore(pts, advance){
   const p = playerById(state.ui.playerId);
   if(!p){ toast('Add players in Setup first.', true); return; }
+  // Zero points need no feature: next turn is the same as "No score", and same turn logs a zero line without counting a tile
+  if(pts===0 && !state.ui.cat && !state.ui.finalScoring){
+    if(advance){ logTileOnly(true); return; }
+    const zero = {id:uid(), playerId:p.id, category:null, subtype:null, points:0, stay:true, hidden:true, turn:state.ui.turnPlayerId};
+    state.entries.push(zero);
+    lastAddedId = zero.id;
+    bonus = 0;
+    save(); renderGame();
+    toast(`No score for ${p.name}, same turn`);
+    flashPanel('flash-good');
+    playSound(EVENT_SOUNDS.noScore);
+    return;
+  }
   if(!state.ui.finalScoring && !state.ui.tileFrom){ toast('Choose where the tile came from first.', true); return; }
   if(!state.ui.cat){ toast('Pick a feature first.', true); return; }
   const isExp = state.ui.cat==='expansion';
@@ -915,6 +1115,7 @@ function logScore(pts, advance){
   const entry = {id:uid(), playerId:p.id, category:state.ui.cat, subtype:isExp?state.ui.expansion:null, points:pts, stay:!advance, from:state.ui.finalScoring ? null : state.ui.tileFrom, turn:state.ui.turnPlayerId};
   const countsTile = advance && !state.ui.finalScoring;
   if(countsTile){ entry.tile = state.ui.tileFrom; state.ui.tileFrom = null; }
+  const totalBefore = playerTotal(p.id); // measured before the new line is added
   state.entries.push(entry);
   lastAddedId = entry.id;
   bonus = 0;
@@ -929,16 +1130,230 @@ function logScore(pts, advance){
   }
   save(); renderGame();
   toast(msg);
+  flashPanel('flash-good'); // a logged score, including 0, turns green
+  playSound(scoreSound(entry.category, entry.subtype, pts));
+  announceMilestone(p, totalBefore);
+  checkWonderNotes(p);
+}
+
+/* ---------- Milestones: a note each time a player passes 50, 100, 150 ... ---------- */
+const MILESTONE_STEP = 50;
+// Quotes shown with each milestone note, picked at random
+const MILESTONE_QUOTES = [
+  {text:'Strategy requires thought; tactics require observation.', author:'Max Euwe'},
+  {text:'We are all apprentices in a craft where no one ever becomes a master.', author:'Ernest Hemingway'},
+  {text:'Tactics mean doing what you can with what you have.', author:'Saul Alinsky'},
+  {text:'Normal people … believe that if it ain’t broke, don’t fix it. Engineers believe that if it ain’t broke, it doesn’t have enough features yet.', author:'Scott Adams'},
+  {text:'Create with the heart; build with the mind.', author:'Criss Jami'},
+  {text:'Wealth consists not in having great possessions, but in having few wants.', author:'Epictetus'},
+  {text:'Sometimes the wheel turns slowly, but it turns.', author:'Lorne Michaels'},
+  {text:'Each of us is carving a stone, erecting a column, or cutting a piece of stained glass in the construction of something much bigger than ourselves.', author:'Adrienne Clarkson'},
+  {text:'Thousands have lived without love, not one without water.', author:'W. H. Auden'},
+  {text:'I am fond of pigs. Dogs look up to us. Cats look down on us. Pigs treat us as equals.', author:'Winston S. Churchill'},
+  {text:'Rocks in my path? I keep them all. With them I shall build my castle.', author:'Nemo Nox'},
+  {text:'Not all who wander are lost.', author:'J.R.R. Tolkien'},
+  {text:'If you owe the bank $100 that’s your problem. If you owe the bank $100 million, that’s the bank’s problem.', author:'J. Paul Getty'},
+  {text:'What gunpowder did for war the printing press has done for the mind.', author:'Wendell Phillips'},
+  {text:'The lowest is to attack a city. Siege of a city is only done as a last resort.', author:'Sun Tzu'},
+  {text:'All the best romances bloom in the midst of a good siege.', author:'Miles Cameron'},
+  {text:'The key words of violent economics are urbanization, industrialization, centralization, efficiency, quantity, speed.', author:'E.F. Schumacher'},
+  {text:'However beautiful the strategy, you should occasionally look at the results.', author:'Winston Churchill'},
+  {text:'Apart from the sanitation, the medicine, education, wine, public order, roads, the fresh water system, and public health … what have the Romans ever done for us?', author:'Graham Chapman, Life of Brian'},
+  {text:'The best steel doesn’t always shine the brightest.', author:'Joe Abercrombie'},
+  {text:'If it weren’t for electricity, we’d all be watching television by candlelight.', author:'George Gobel'},
+  {text:'Chemists do not usually stutter. It would be very awkward if they did, seeing that they have at times to get out such words as methylethylamylophenylium.', author:'Sir William Crookes'},
+  {text:'If you do not change direction, you may end up where you were heading.', author:'Lao Tzu'},
+  {text:'In art and dream may you proceed with abandon. In life may you proceed with balance and stealth.', author:'Patti Smith'},
+  {text:'Even though the future seems far away, it is actually beginning right now.', author:'Mattie Stepanek'},
+  {text:'Every nation lives by exchanging.', author:'Adam Smith'},
+  {text:'It was luxuries like air conditioning that brought down the Roman Empire. With air conditioning their windows were shut; they couldn’t hear the barbarians coming.', author:'Garrison Keillor'},
+  {text:'Politics is the art of the possible, the attainable – the art of the next best.', author:'Otto von Bismarck'},
+  {text:'If it’s natural to kill, how come men have to go into training to learn how?', author:'Joan Baez'},
+  {text:'History is the version of past events that people have decided to agree upon.', author:'Napoleon Bonaparte'},
+  {text:'The day we stop exploring is the day we commit ourselves to live in a stagnant world, devoid of curiosity, empty of dreams.', author:'Neil deGrasse Tyson'},
+  {text:'The four characteristics of humanism are curiosity, a free mind, belief in good taste, and belief in the human race.', author:'E.M. Forster'},
+  {text:'Having seen a non-market economy, I suddenly understood much better what I liked about a market economy.', author:'Esther Dyson'},
+  {text:'If winning isn’t everything, why do they keep score?', author:'Vince Lombardi'},
+  {text:'One day there will be no borders, no boundaries, no flags and no countries and the only passport will be the heart.', author:'Carlos Santana'},
+  {text:'Which of all my important nothings shall I tell you first?', author:'Jane Austen'}
+];
+let lastMilestoneQuote = -1;
+function playerTotal(id){ return sum(computeTotals().byPlayer[id]); }
+
+/* Notes are shown one at a time, so a new note waits rather than replacing one on screen */
+const noteQueue = [];
+let noteShowing = false, noteTimer = null;
+function queueNote(note){ noteQueue.push(note); if(!noteShowing) showNextNote(); }
+function closeNote(){ clearTimeout(noteTimer); showNextNote(); }
+function showNextNote(){
+  const note = noteQueue.shift();
+  const box = $('note');
+  if(!note){ noteShowing = false; box.hidden = true; return; }
+  noteShowing = true;
+  $('noteMeeple').hidden = !note.meeple;
+  if(note.meeple) $('noteMeeple').src = `icons/meeples/${note.meeple}.png`;
+  $('noteName').textContent = note.name || '';
+  $('noteNum').textContent = note.num || '';
+  $('noteText').textContent = note.text || '';
+  $('noteImg').hidden = !note.img;
+  if(note.img) $('noteImg').src = note.img;
+  const quoteEl = $('noteQuote');
+  quoteEl.textContent = '';
+  if(note.quote){
+    const em = document.createElement('em');
+    em.textContent = note.quote.text;
+    quoteEl.append(em, ' - ' + note.quote.author);
+  }
+  $('noteBody').hidden = !(note.img || note.quote);
+  box.hidden = false;
+  // Restart the entrance animation for each note
+  box.style.animation = 'none'; void box.offsetWidth; box.style.animation = '';
+  if(note.sound) playSound(note.sound);
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(showNextNote, note.ms || 4500);
+}
+
+// A note when this player's total has passed a new multiple of 50 (the highest one passed)
+function announceMilestone(p, before){
+  const after = playerTotal(p.id);
+  const passed = Math.floor(after/MILESTONE_STEP) - Math.floor(before/MILESTONE_STEP);
+  if(passed <= 0) return;
+  const milestone = Math.floor(after/MILESTONE_STEP) * MILESTONE_STEP;
+  let i;
+  do{ i = Math.floor(Math.random() * MILESTONE_QUOTES.length); }
+  while(i === lastMilestoneQuote && MILESTONE_QUOTES.length > 1);
+  lastMilestoneQuote = i;
+  // 50, 150, 250 ... use the 50 tile; 100, 200, 300 ... use the 100 tile
+  const tile = milestone % 100 === 50 ? 'icons/milestones/tile-50.jpg' : 'icons/milestones/tile-100.jpg';
+  queueNote({name: p.name, meeple: MEEPLES[p.color], text: `has reached ${milestone} points.`, img: tile, quote: MILESTONE_QUOTES[i], ms: 10000, sound: EVENT_SOUNDS.milestone});
+}
+
+/* Wonders of Humanity (only when that expansion is ticked).
+   First wonder: the 1st player past 10 points, then the 2nd past 15, and so on, one step per player.
+   Each player gets it once. Second wonder: every player who passes 50. */
+const WONDER_EXPANSION = 'Wonders of Humanity';
+const WONDER_FIRST_AT = 10, WONDER_FIRST_STEP = 5, WONDER_SECOND_AT = 50;
+function checkWonderNotes(p){
+  if(!state.enabled.includes(WONDER_EXPANSION)) return;
+  const wn = state.wonderNotes, total = playerTotal(p.id);
+  const told = wn.first.length; // players already sent to choose a first wonder
+  if(!wn.first.includes(p.id) && told < state.players.length && total >= WONDER_FIRST_AT + WONDER_FIRST_STEP*told){
+    wn.first.push(p.id);
+    queueWonderNote(p, 'must choose a wonder and build it in the next turn.');
+  }
+  if(!wn.second.includes(p.id) && total >= WONDER_SECOND_AT){
+    wn.second.push(p.id);
+    queueWonderNote(p, 'must choose a second wonder and build it in the next turn, if playing with 2 wonders.');
+  }
+  save();
+}
+// Each wonder note shows a random wonder's picture with one of its quotes
+const WONDERS = [
+  {img:'icons/wonders/cothon-of-carthage.png', quotes:[
+    {text:'Rome will not rest until the Cothon of Carthage and all around it lies in ruins.', author:'Cato the Elder, attributed'},
+    {text:'Whether I find a path to the Cothon of Carthage or must carve one myself, I will reach it.', author:'Hannibal, attributed'}]},
+  {img:'icons/wonders/taj-mahal.png', quotes:[
+    {text:'The Taj Mahal is no ordinary building but an emperor’s fierce love turned into living stone.', author:'Sir Edwin Arnold, attributed'},
+    {text:'So beautiful is the Taj Mahal that the sun and moon themselves seem to weep.', author:'Shah Jahan, attributed'}]},
+  {img:'icons/wonders/nazca-lines.png', quotes:[
+    {text:'Given a hundred lifetimes, I would spend every one of them on the Nazca Lines.', author:'Maria Reiche'},
+    {text:'The Nazca Lines are the largest book of astronomy ever written.', author:'Paul Kosok'}]},
+  {img:'icons/wonders/great-wall.png', quotes:[
+    {text:'Anyone standing on the Great Wall of China must admit it took a great people to build it.', author:'Richard Nixon'},
+    {text:'Let the Great Wall of China remind us that no walls should stand between peoples.', author:'Richard Nixon'}]},
+  {img:'icons/wonders/terracotta-army.png', quotes:[
+    {text:'Beside the Terracotta Army, the emperor’s tomb has mercury standing in for a hundred rivers.', author:'Sima Qian'},
+    {text:'Beside the Terracotta Army, crossbows are rigged to fire on any intruder.', author:'Sima Qian'}]},
+  {img:'icons/wonders/angkor-wat.png', quotes:[
+    {text:'Angkor Wat surpasses anything that Greece or Rome left behind.', author:'Henri Mouhot'},
+    {text:'Angkor Wat rivals Solomon’s temple and looks like the work of some ancient Michelangelo.', author:'Henri Mouhot'}]},
+  {img:'icons/wonders/tikal.png', quotes:[
+    {text:'In the jungle at Tikal, every art that beautifies life, from building to carving to painting, once flourished.', author:'John Lloyd Stephens, adapted from his remarks on Copán'}]},
+  {img:'icons/wonders/abu-simbel.png', quotes:[
+    {text:'The colossi of Abu Simbel are a triumph of how stone was handled.', author:'Amelia Edwards'},
+    {text:'Nothing in Egyptian sculpture rivals how the artists of Abu Simbel shaped vast masses of rock into human form.', author:'Amelia Edwards'}]},
+  {img:'icons/wonders/alhambra.png', quotes:[
+    {text:'The Alhambra is a harsh fortress outside and a sensuous palace within.', author:'Washington Irving'},
+    {text:'Within the walls of the Alhambra, none conquers but God.', author:'Nasrid motto, from Muhammad I and his successors'}]},
+  {img:'icons/wonders/circus-maximus.png', quotes:[
+    {text:'Give the people grain and the races of the Circus Maximus, and they ask for nothing more.', author:'Juvenal'},
+    {text:'When the games began at the Circus Maximus, no one had eyes or thoughts for anything else.', author:'Livy'}]},
+  {img:'icons/wonders/stonehenge.png', quotes:[
+    {text:'Stonehenge is older than the centuries, older even than the d’Urbervilles.', author:'Angel Clare, in Thomas Hardy’s Tess'},
+    {text:'Lying among the stones of Stonehenge, I am finally at home.', author:'Tess, in Thomas Hardy’s Tess'}]},
+  {img:'icons/wonders/notre-dame.png', quotes:[
+    {text:'One day the book will destroy buildings like Notre-Dame.', author:'Victor Hugo'},
+    {text:'Until Gutenberg, great cathedrals like Notre-Dame were the principal and universal form of writing.', author:'Victor Hugo'}]}
+];
+function queueWonderNote(p, text){
+  const wonder = WONDERS[Math.floor(Math.random() * WONDERS.length)];
+  const quote = wonder.quotes[Math.floor(Math.random() * wonder.quotes.length)];
+  queueNote({name: p.name, meeple: MEEPLES[p.color], text, img: wonder.img, quote, ms: 12000, sound: EVENT_SOUNDS.wonder});
 }
 
 /* ---------- Rulebooks ---------- */
 const BASE_RULEBOOK = BASE_RULEBOOK_NAME;
-const ruleFile = name => 'rulebooks/' + name.toLowerCase().replace(/&/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '.pdf';
+const slugOf = s => s.toLowerCase().replace(/&/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const ALWAYS_RULEBOOKS = ['Expansion Combination', 'House Rules'];
+const allRuleNames = () => [BASE_RULEBOOK, ...EXPANSION_GROUPS.flatMap(g=>g.items), ...ALWAYS_RULEBOOKS];
+
+/* Rulebook PDFs are picked from the tablet's own files and kept in IndexedDB,
+   so they stay on the device and work offline. Nothing is fetched from the server. */
+const RULE_DB = 'carcassonne-rulebooks', RULE_STORE = 'pdfs';
+let ruleStored = new Set(); // slugs of the rulebooks saved on this device
+function ruleDb(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(RULE_DB, 1);
+    req.onupgradeneeded = ()=>req.result.createObjectStore(RULE_STORE);
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+// Runs one request in its own transaction and resolves with its result
+async function ruleDbRun(mode, makeRequest){
+  const db = await ruleDb();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(RULE_STORE, mode);
+    const req = makeRequest(tx.objectStore(RULE_STORE));
+    let result;
+    if(req) req.onsuccess = ()=>{ result = req.result; };
+    tx.oncomplete = ()=>{ db.close(); resolve(result); };
+    tx.onerror = tx.onabort = ()=>{ db.close(); reject(tx.error || new Error('storage')); };
+  });
+}
+async function refreshStored(){
+  try{ ruleStored = new Set(await ruleDbRun('readonly', s=>s.getAllKeys())); }
+  catch(e){ ruleStored = new Set(); }
+  renderRuleList(); renderRuleStatus();
+}
+async function addRulebooks(files){
+  const known = new Map(allRuleNames().map(n=>[slugOf(n), n]));
+  const problems = [];
+  for(const f of files){
+    const key = slugOf(f.name.replace(/\.pdf$/i,''));
+    if(!known.has(key)){ problems.push(f.name); continue; }
+    try{
+      await ruleDbRun('readwrite', s=>s.put(f, key));
+      ruleStored.add(key);
+    }catch(e){ problems.push(f.name + ' (could not be saved)'); }
+  }
+  renderRuleList(); renderRuleStatus(problems);
+}
+function renderRuleStatus(problems){
+  const names = allRuleNames();
+  const have = names.filter(n=>ruleStored.has(slugOf(n))).length;
+  const parts = [`${have} of ${names.length} rulebooks are on this tablet.`];
+  if(problems && problems.length) parts.push(`Not added, because the file name does not match a rulebook: ${problems.join(', ')}.`);
+  $('ruleStatus').textContent = parts.join(' ');
+  $('ruleStatus').hidden = false;
+  $('ruleClearBtn').disabled = !ruleStored.size;
+}
+async function persistStorage(){
+  try{ if(navigator.storage && navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
+}
 const ruleEntries = () => [BASE_RULEBOOK, ...orderedEnabled(), ...ALWAYS_RULEBOOKS];
 const MAX_PIXEL_RATIO = 2;
 let ruleOpen = null, ruleDoc = null, ruleSizes = [], ruleToken = 0, ruleZoom = 1, ruleObserver = null, ruleWidth = 0, pdfLibPromise = null;
-const ruleSaved = new Set();
 
 function renderRightView(){
   const rules = state.ui.rightView==='rules';
@@ -951,7 +1366,8 @@ function renderRuleList(){
   const entries = ruleEntries();
   $('ruleList').innerHTML = entries.map(name=>{
     const icon = name===BASE_RULEBOOK ? baseIcon() : (expIcon(name) || '<span class="rule-no-icon"></span>');
-    return `<button class="rule-item" data-rule="${esc(name)}">${icon}<span>${esc(name)}</span></button>`;
+    const have = ruleStored.has(slugOf(name));
+    return `<button class="rule-item${have?'':' missing'}" data-rule="${esc(name)}">${icon}<span>${esc(name)}</span>${have?'':'<span class="rule-tag">Not added</span>'}</button>`;
   }).join('');
   if(ruleOpen && !entries.includes(ruleOpen)) closeRule();
 }
@@ -990,12 +1406,12 @@ async function openRule(name){
   ruleMessage('Loading rulebook…');
   try{
     const lib = await loadPdfLib();
-    let res;
-    try{ res = await fetch(ruleFile(name)); }
-    catch(e){ if(token===ruleToken) ruleMessage('This rulebook is not saved on this device yet. Open it once while online.'); return; }
+    let file;
+    try{ file = await ruleDbRun('readonly', s=>s.get(slugOf(name))); }
+    catch(e){ if(token===ruleToken) ruleMessage('This rulebook could not be read from this tablet.'); return; }
     if(token!==ruleToken) return;
-    if(!res.ok){ ruleMessage(`This rulebook has not been added yet. Expected file: ${ruleFile(name)}`); return; }
-    const data = await res.arrayBuffer();
+    if(!file){ ruleMessage('This rulebook is not on this tablet yet. Go back to All rulebooks and use Add rulebook PDFs.'); return; }
+    const data = await file.arrayBuffer();
     const doc = await lib.getDocument({data, isEvalSupported:false}).promise;
     if(token!==ruleToken){ doc.destroy(); return; }
     ruleDoc = doc;
@@ -1077,20 +1493,10 @@ function zoomRule(by){
   layoutRule(page);
 }
 
-// Fetching each ticked rulebook once lets the app save it for offline use
-async function saveActiveRules(){
-  if(!navigator.onLine || !('serviceWorker' in navigator)) return;
-  for(const name of ruleEntries()){
-    if(ruleSaved.has(name)) continue;
-    ruleSaved.add(name);
-    try{ await fetch(ruleFile(name)); }catch(e){ ruleSaved.delete(name); return; }
-  }
-}
-
 function setRightView(view){
   state.ui.rightView = view;
   save(); renderRightView();
-  if(view==='rules'){ saveActiveRules(); requestAnimationFrame(()=>{ if($('rulePages').clientWidth!==ruleWidth) layoutRule(currentRulePage()); }); }
+  if(view==='rules'){ requestAnimationFrame(()=>{ if($('rulePages').clientWidth!==ruleWidth) layoutRule(currentRulePage()); }); }
 }
 
 /* ---------- Spreadsheet export ---------- */
@@ -1197,11 +1603,13 @@ function bind(){
     if(none){ const items = EXPANSION_GROUPS[+none.dataset.gnone].items; state.enabled = state.enabled.filter(x=>!items.includes(x)); save(); render(); }
   });
 
-  $('startBtn').onclick = ()=>{ showTab('game'); saveActiveRules(); };
+  $('startBtn').onclick = ()=>{ showTab('game'); logRiverStart(); };
   $('clearScoresBtn').onclick = ()=>{
     if(!state.entries.length) return;
     if(!confirm('Clear all logged scores? Players and expansions are kept.')) return;
-    state.entries = []; lastAddedId = null; state.ui.finalScoring = false; save(); render();
+    state.entries = []; lastAddedId = null; state.ui.finalScoring = false;
+    state.wonderNotes = {first:[], second:[]}; // the wonder notes can come again after a fresh start
+    save(); render();
   };
   $('resetBtn').onclick = ()=>{
     if(!confirm('Reset everything? This clears players, expansions and all scores.')) return;
@@ -1222,6 +1630,7 @@ function bind(){
     state.ui.finalScoring = !state.ui.finalScoring;
     bonus = 0;
     sanitize(); save(); renderGame();
+    if(state.ui.finalScoring) playSound(EVENT_SOUNDS.finalScoring);
   };
   $('turnNote').addEventListener('click', e=>{
     if(e.target.id==='setTurnBtn'){ state.ui.turnPlayerId = state.ui.playerId; save(); renderGame(); }
@@ -1278,6 +1687,23 @@ function bind(){
     const b = e.target.closest('[data-rule]'); if(b) openRule(b.dataset.rule);
   };
   $('ruleBack').onclick = closeRule;
+  $('soundBtn').onclick = ()=>{
+    state.ui.sound = state.ui.sound === false;
+    save(); renderSoundBtn();
+    preloadSounds();
+  };
+  $('rulePickBtn').onclick = ()=>$('rulePick').click();
+  $('rulePick').onchange = async e=>{
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if(files.length) await addRulebooks(files);
+  };
+  $('ruleClearBtn').onclick = async ()=>{
+    if(!confirm('Remove all rulebooks from this tablet? You can pick them again afterwards.')) return;
+    try{ await ruleDbRun('readwrite', s=>s.clear()); }catch(e){}
+    ruleStored = new Set();
+    renderRuleList(); renderRuleStatus();
+  };
   $('ruleZoomIn').onclick = ()=>zoomRule(.25);
   $('ruleZoomOut').onclick = ()=>zoomRule(-.25);
   $('rulePages').addEventListener('scroll', ()=>requestAnimationFrame(showRulePageNo), {passive:true});
@@ -1300,6 +1726,11 @@ function bind(){
   bind();
   render();
   showTab(state.players.length ? 'game' : 'setup');
+  refreshStored();
+  renderSoundBtn();
+  // Browsers only allow sound after a tap, so the sounds load on the first one
+  document.addEventListener('pointerdown', preloadSounds, {once:true});
+  persistStorage();
 
   // Installable + offline: cache the app, and ask the browser not to evict saved games
   if('serviceWorker' in navigator){
@@ -1308,5 +1739,17 @@ function bind(){
   if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 })();
 </script>
+<div class="note" id="note" hidden role="status" aria-live="polite" onclick="closeNote()">
+  <div class="note-head">
+    <img class="note-meeple" id="noteMeeple" alt="" hidden>
+    <span class="note-name" id="noteName"></span>
+    <span class="note-num" id="noteNum"></span>
+  </div>
+  <p class="note-text" id="noteText"></p>
+  <div class="note-body" id="noteBody" hidden>
+    <img class="note-img" id="noteImg" alt="" hidden onerror="this.hidden=true">
+    <p class="note-quote" id="noteQuote"></p>
+  </div>
+</div>
 </body>
 </html>

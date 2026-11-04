@@ -23,15 +23,13 @@ Games are saved in the browser on the device being used. Nothing is sent to a se
 
 ## Rulebooks
 
-The Game screen has a Rulebooks switch beside Log a Score. It lists the base game, the ticked expansions, and always Expansion Combination and House Rules at the end.
+The rulebooks are not part of the website. Each tablet keeps its own copies, so they never go on GitHub.
 
-1. Rename your single PDFs to match `rulebooks/README.txt`.
-2. Upload them to the `rulebooks` folder of the repository. GitHub's upload page has a limit per file, so compress any PDF it rejects.
-3. Open the app while online with the expansions ticked. Those rulebooks are then saved for offline use.
+1. Rename your PDFs to the names the app expects. Each name is the rulebook's title in lower case, with spaces and punctuation replaced by hyphens, for example `1-inns-cathedrals.pdf` or `abbot.pdf`.
+2. On the tablet, open the app, go to **Game**, switch to **Rulebooks** and tap **Add rulebook PDFs**. Select all the PDFs at once. The app reports any file whose name it does not recognise.
+3. The PDFs are kept on that tablet, so they work offline. Clearing the browser's site data, or removing the app from the home screen, deletes them. Use **Remove all** to free the space.
 
-Anyone with the site's link can download these PDFs, so check that you may publish them.
-
-To replace a rulebook, upload a new file with the same name. Each device picks it up after opening it online.
+Rulebooks added on one device are not copied to another, so repeat step 2 on each tablet.
 
 ## Updating
 

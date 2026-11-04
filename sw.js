@@ -1,8 +1,7 @@
 // Offline support. Files are served from the cache straight away and refreshed
 // in the background, so a new upload reaches players on their next app launch.
 // Change CACHE only if you rename or remove files in the ASSETS list.
-const CACHE = 'carcassonne-v13';
-const RULES_CACHE = 'carcassonne-rulebooks'; // kept across app updates, so PDFs are not downloaded again
+const CACHE = 'carcassonne-v20';
 const ASSETS = [
   './',
   './index.html',
@@ -18,6 +17,58 @@ const ASSETS = [
   './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png',
   './icons/final-scoring.png',
+  './sounds/bell2.mp3',
+  './sounds/boat.mp3',
+  './sounds/castleselect.mp3',
+  './sounds/castlevitalis.mp3',
+  './sounds/chariotmove.mp3',
+  './sounds/circus.mp3',
+  './sounds/dock4.mp3',
+  './sounds/dropmetal.mp3',
+  './sounds/farmdepleted.mp3',
+  './sounds/gate.mp3',
+  './sounds/govcentre.mp3',
+  './sounds/granary.mp3',
+  './sounds/horsegallop.mp3',
+  './sounds/horsesound.mp3',
+  './sounds/horsestrot.mp3',
+  './sounds/market1.mp3',
+  './sounds/market2.mp3',
+  './sounds/metal-light.mp3',
+  './sounds/monkcomplete.mp3',
+  './sounds/readymilitary.mp3',
+  './sounds/relicpickup.mp3',
+  './sounds/sheep.mp3',
+  './sounds/spies.mp3',
+  './sounds/storagepit.mp3',
+  './sounds/sword.mp3',
+  './sounds/technology.mp3',
+  './sounds/temple.mp3',
+  './sounds/tower.mp3',
+  './sounds/townbells.mp3',
+  './sounds/trebuchet.mp3',
+  './sounds/tribute.mp3',
+  './sounds/victory.mp3',
+  './sounds/viking.mp3',
+  './sounds/walls.mp3',
+  './sounds/wave.mp3',
+  './sounds/wolf.mp3',
+  './sounds/wonder1.mp3',
+  './sounds/wonder2.mp3',
+  './icons/milestones/tile-50.jpg',
+  './icons/milestones/tile-100.jpg',
+  './icons/wonders/notre-dame.png',
+  './icons/wonders/stonehenge.png',
+  './icons/wonders/circus-maximus.png',
+  './icons/wonders/alhambra.png',
+  './icons/wonders/abu-simbel.png',
+  './icons/wonders/tikal.png',
+  './icons/wonders/angkor-wat.png',
+  './icons/wonders/terracotta-army.png',
+  './icons/wonders/great-wall.png',
+  './icons/wonders/nazca-lines.png',
+  './icons/wonders/cothon-of-carthage.png',
+  './icons/wonders/taj-mahal.png',
   './icons/tiles/starting.png',
   './icons/tiles/landscape.png',
   './icons/meeples/red.png',
@@ -89,7 +140,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k.startsWith('carcassonne-') && k !== CACHE && k !== RULES_CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('carcassonne-') && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -97,8 +148,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith((async () => {
-    const isRulebook = new URL(e.request.url).pathname.includes('/rulebooks/');
-    const cache = await caches.open(isRulebook ? RULES_CACHE : CACHE);
+    const cache = await caches.open(CACHE);
     const cached = await cache.match(e.request, {ignoreSearch: true});
     const network = fetch(e.request).then(async res => {
       if (res.ok) await cache.put(e.request, res.clone());
