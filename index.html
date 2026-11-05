@@ -16,7 +16,9 @@
 <link rel="preload" href="vendor/fonts/work-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <script src="vendor/xlsx.full.min.js" defer></script>
 <style>
-  @font-face{font-family:'Fraunces'; font-style:normal; font-weight:100 900; font-display:swap; src:url(vendor/fonts/fraunces-latin-wght-normal.woff2) format('woff2');}
+  @font-face{font-family:'Libre Caslon Text'; font-style:normal; font-weight:400; font-display:swap; src:url(vendor/fonts/libre-caslon-text-latin-400-normal.woff2) format('woff2');}
+  @font-face{font-family:'Libre Caslon Text'; font-style:italic; font-weight:400; font-display:swap; src:url(vendor/fonts/libre-caslon-text-latin-400-italic.woff2) format('woff2');}
+  @font-face{font-family:'Libre Caslon Text'; font-style:normal; font-weight:700; font-display:swap; src:url(vendor/fonts/libre-caslon-text-latin-700-normal.woff2) format('woff2');}
   @font-face{font-family:'Work Sans'; font-style:normal; font-weight:100 900; font-display:swap; src:url(vendor/fonts/work-sans-latin-wght-normal.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
   @font-face{font-family:'Work Sans'; font-style:normal; font-weight:100 900; font-display:swap; src:url(vendor/fonts/work-sans-latin-ext-wght-normal.woff2) format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
   :root{
@@ -49,7 +51,7 @@
   .hero-tiles span:nth-child(2){background:var(--road);}
   .hero-tiles span:nth-child(3){background:var(--monastery);}
   .hero-tiles span:nth-child(4){background:var(--field);}
-  h1{font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:1.2rem; margin:0;}
+  h1{font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; font-size:1.2rem; margin:0;}
   .tabs{display:flex; gap:6px;}
   .tab{padding:10px 18px; border:1.5px solid var(--ink); background:transparent; color:var(--ink); font-weight:600; font-size:.95rem; cursor:pointer;}
   .tab.active{background:var(--ink); color:var(--parchment);}
@@ -61,7 +63,7 @@
 
   /* Shared */
   .card{background:var(--card-bg); border:1px solid var(--line); padding:14px; min-height:0;}
-  .card h2{font-family:'Fraunces',Georgia,serif; font-size:1rem; font-weight:600; margin:0 0 10px; display:flex; align-items:center; gap:8px;}
+  .card h2{font-family:'Libre Caslon Text',Georgia,serif; font-size:1rem; font-weight:600; margin:0 0 10px; display:flex; align-items:center; gap:8px;}
   .card h2::before{content:''; width:8px; height:8px; background:var(--ink); display:inline-block; transform:rotate(45deg);}
   .card-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
   .head-btns{display:flex; gap:6px; flex-shrink:0;}
@@ -91,7 +93,7 @@
   .color-pick.taken{opacity:.2; cursor:not-allowed;}
   .exp-group{margin-top:14px;}
   .exp-group-head{display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:6px;}
-  .exp-group-head h3{margin:0; font-family:'Fraunces',Georgia,serif; font-size:.92rem; font-weight:600; flex:1;}
+  .exp-group-head h3{margin:0; font-family:'Libre Caslon Text',Georgia,serif; font-size:.92rem; font-weight:600; flex:1;}
   .exp-group-head .count{font-size:.78rem; color:var(--ink-soft);}
   .exp-grid{columns:340px; column-gap:24px;}
   .exp-item{display:flex; align-items:center; gap:10px; min-height:38px; font-size:.9rem; cursor:pointer;}
@@ -152,7 +154,7 @@
   .dd .exp-icon, .dd .cat-icon, .dd-item .exp-icon, .dd-item .cat-icon, .dd-spacer{width:24px; height:24px; flex-shrink:0;}
   .dd-label{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .dd-list{position:fixed; z-index:30; overflow-y:auto; background:#fff; border:1.5px solid var(--ink); box-shadow:0 4px 14px rgba(42,40,32,.3);}
-  .dd-group{padding:8px 12px 4px; font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:.85rem; color:var(--ink-soft);}
+  .dd-group{padding:8px 12px 4px; font-family:'Libre Caslon Text',Georgia,serif; font-weight:600; font-size:.85rem; color:var(--ink-soft);}
   .dd-item{width:100%; min-height:44px; display:flex; align-items:center; gap:10px; padding:6px 12px; font:inherit; font-size:.95rem; text-align:left; background:transparent; border:none; color:var(--ink); cursor:pointer;}
   .dd-item:hover, .dd-item:focus-visible{background:var(--tile-bg); outline:none;}
   .dd-item[aria-selected="true"]{background:var(--parchment); font-weight:600;}
@@ -161,7 +163,7 @@
   .tile-actions{display:grid; grid-template-columns:2fr 1fr 1fr; gap:4px;}
   .tile-actions .btn{min-height:44px; padding:6px 4px;}
   .pt-row{display:grid; grid-template-columns:repeat(12,1fr); gap:4px;}
-  .pt-row button{height:56px; padding:0; font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:1.2rem; cursor:pointer; border:1.5px solid var(--ink);}
+  .pt-row button{height:56px; padding:0; font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; font-size:1.2rem; cursor:pointer; border:1.5px solid var(--ink);}
   .pt-row.next button{background:#fff; color:var(--ink);}
   .pt-row.stay button{background:var(--ink); color:var(--parchment);}
   /* Paper tab attached to the top edge of each number row, not a button */
@@ -203,7 +205,7 @@
   .rule-status-row{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
   .rule-status-row .rule-msg{margin:0; flex:1 1 auto; min-width:0;}
   .rule-status-row .text-btn{flex:0 0 auto;}
-  .rule-title{flex:1 1 120px; min-width:0; font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:.95rem;}
+  .rule-title{flex:1 1 120px; min-width:0; font-family:'Libre Caslon Text',Georgia,serif; font-weight:600; font-size:.95rem;}
   .rule-page-no{font-size:.8rem; color:var(--ink-soft); white-space:nowrap;}
   .rule-msg{margin:0; padding:10px 12px; background:var(--tile-bg); border:1px solid var(--line); font-size:.88rem; overflow-wrap:anywhere;}
   .rule-pages{flex:1 1 0; min-height:0; min-width:0; overflow:auto; background:var(--parchment); padding:8px;}
@@ -219,7 +221,7 @@
   .tile .pname{font-weight:700; display:flex; align-items:center; gap:6px; min-width:84px;}
   .tile .what{flex:1; color:var(--ink-soft); min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:5px;}
   .log-sep{color:var(--ink-soft); opacity:.7;}
-  .tile .pts{font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:1.1rem;}
+  .tile .pts{font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; font-size:1.1rem;}
   .tile .del{border:none; background:none; color:var(--ink-soft); font-size:1rem; cursor:pointer; padding:10px 12px;}
   .score-card{flex:0 1 auto; max-height:55%; overflow:hidden; display:flex; flex-direction:column; padding-top:0; padding-bottom:0;}
   .score-card .card-head{padding-top:14px;}
@@ -245,7 +247,7 @@
   table{width:100%; border-collapse:collapse; font-size:.9rem;}
   th,td{padding:7px 8px; text-align:right; border-bottom:1px solid var(--line);}
   th:first-child,td:first-child{text-align:left;}
-  thead th{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:.85rem; vertical-align:bottom; overflow-wrap:anywhere;}
+  thead th{font-family:'Libre Caslon Text',Georgia,serif; font-weight:600; font-size:.85rem; vertical-align:bottom; overflow-wrap:anywhere;}
   tr.total-row td{font-weight:700; border-top:none; border-bottom:none; font-size:1.05rem; position:sticky; bottom:0; z-index:1; background:var(--card-bg); box-shadow:inset 0 2px 0 var(--ink);}
   tr.sub td{font-size:.8rem; color:var(--ink-soft); padding-top:3px; padding-bottom:3px;}
   tr.sub td:first-child{padding-left:26px;}
@@ -302,11 +304,12 @@
   .note{position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:40; width:min(92vw,440px); display:flex; flex-direction:column; gap:8px; padding:12px 16px; background:var(--card-bg); border:2px solid var(--ink); box-shadow:0 6px 18px rgba(42,40,32,.3); cursor:pointer; animation:noteIn .35s ease-out;}
   .note-head{display:flex; align-items:center; justify-content:center; gap:10px; min-width:0;}
   .note-meeple{width:28px; height:28px; flex-shrink:0;}
-  .note-name{font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:1.25rem; line-height:1.1; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
-  .note-num{font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:2rem; line-height:1; color:var(--ink);}
+  .note-name{font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; font-size:1.25rem; line-height:1.1; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
+  .note-num{font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; font-size:2rem; line-height:1; color:var(--ink);}
   .note-text{margin:0; font-size:.95rem; font-weight:600; color:var(--ink); text-align:center; text-wrap:balance;}
   .note-body{display:flex; align-items:center; gap:12px; min-width:0;}
   .note-img{width:min(40%,130px); height:auto; flex-shrink:0; object-fit:contain;}
+  .note-quote em{font-family:'Libre Caslon Text',Georgia,serif; font-style:italic; font-size:1.05em;}
   .note-quote{margin:0; font-size:.9rem; line-height:1.35; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
   @keyframes noteIn{from{opacity:0; transform:translate(-50%,-12px);} to{opacity:1; transform:translate(-50%,0);}}
   @media (prefers-reduced-motion:reduce){ .note{animation:none;} }
@@ -592,6 +595,12 @@ function tilesInSource(name){
   return landscapeTiles(name);
 }
 const tileSources = () => [BASE_RULEBOOK_NAME, ...orderedEnabled().filter(n=>tilesInSource(n)>0)];
+// True when this tile was the last one of the base game or an expansion (the River does not count)
+function sourceFinished(source){
+  if(!source || source === 'River') return false;
+  const total = tilesInSource(source);
+  return total > 0 && (tilesPlayed().by[source] || 0) === total;
+}
 function tilesPlayed(){
   const by = {}; let total = 0;
   state.entries.forEach(e=>{ if(e.tile){ by[e.tile] = (by[e.tile]||0)+1; total++; } });
@@ -699,7 +708,7 @@ const EXPANSION_SOUNDS = {
   'Spell Circles':'temple', 'Gifts':'tribute', 'Halflings':'metal-light', 'Japanese Buildings':'wonder1',
   'Barber-Surgeons':'bell2', 'Spiel 25':'market1', 'Spiel 26':'market1', 'Labyrinth':'relicpickup'
 };
-const EVENT_SOUNDS = {riverSetup:'dock4', finalScoring:'victory', wonder:'wonder2', milestone:'viking', extraTile:'horsesound', undo:'farmdepleted', noScore:'storagepit'};
+const EVENT_SOUNDS = {riverSetup:'dock4', finalScoring:'victory', wonder:'wonder2', sourceDone:'viking', extraTile:'horsesound', undo:'farmdepleted', noScore:'storagepit'};
 // Sheep & Shepherds: sheep for points, wolves for 0. Any other 0 plays the no-score sound.
 function scoreSound(cat, expansion, pts){
   if(cat === 'expansion' && expansion === '9. Sheep & Shepherds') return pts > 0 ? 'sheep' : 'wolf';
@@ -729,18 +738,22 @@ function loadSound(name){
   return soundBuffers[name];
 }
 // Plays sounds one after another, each starting when the one before it ends
+// Resolves with when each sound ends, in milliseconds from now, keyed by name (missing sounds are left out)
 function playSounds(names){
   names = names.filter(Boolean);
-  if(!names.length || state.ui.sound === false) return;
-  const ctx = audio(); if(!ctx) return;
-  Promise.all(names.map(loadSound)).then(buffers=>{
-    let at = ctx.currentTime + 0.02;
-    buffers.forEach(buffer=>{
+  if(!names.length || state.ui.sound === false) return Promise.resolve({});
+  const ctx = audio(); if(!ctx) return Promise.resolve({});
+  return Promise.all(names.map(loadSound)).then(buffers=>{
+    const start = ctx.currentTime + 0.02, ends = {};
+    let at = start;
+    buffers.forEach((buffer, k)=>{
       if(!buffer) return;
       const src = ctx.createBufferSource();
       src.buffer = buffer; src.connect(ctx.destination); src.start(at);
       at += buffer.duration;
+      ends[names[k]] = (at - ctx.currentTime) * 1000;
     });
+    return ends;
   });
 }
 function playSound(name){ playSounds([name]); }
@@ -1087,7 +1100,7 @@ function logTileOnly(advance){
   }
   save(); renderGame(); toast(msg);
   if(advance) flashPanel('flash-good'); // No score, next turn is a turn ended, shown green
-  playSound(advance ? EVENT_SOUNDS.noScore : EVENT_SOUNDS.extraTile);
+  playSounds([advance ? EVENT_SOUNDS.noScore : EVENT_SOUNDS.extraTile, sourceFinished(entry.tile) ? EVENT_SOUNDS.sourceDone : null]);
 }
 // Removes the latest tile with its log line, including any points on that line.
 // The turn only moves back if nothing has been logged since.
@@ -1150,11 +1163,17 @@ function logScore(pts, advance){
   save(); renderGame();
   toast(msg);
   flashPanel('flash-good'); // a logged score, including 0, turns green
-  // Feature sound first, then the 50-point sound, then the wonder sound
+  // Feature sound first, then the spoken quote of the points popup, then the wonder sound
   const sounds = [scoreSound(entry.category, entry.subtype, pts)];
-  if(announceMilestone(p, totalBefore)) sounds.push(EVENT_SOUNDS.milestone);
+  const milestone = announceMilestone(p, totalBefore);
+  if(milestone) sounds.push(milestone.sound);
   if(checkWonderNotes(p)) sounds.push(EVENT_SOUNDS.wonder);
-  playSounds(sounds);
+  // Last of all, the viking sound when this was the final tile of the base game or an expansion
+  if(countsTile && sourceFinished(entry.tile)) sounds.push(EVENT_SOUNDS.sourceDone);
+  playSounds(sounds).then(ends=>{
+    // Keep the points popup up until its quote has been read out, plus a moment
+    if(milestone && ends[milestone.sound]) milestone.note.holdUntil = Date.now() + ends[milestone.sound] + 1500;
+  });
 }
 
 /* ---------- Milestones: a note each time a player passes 50, 100, 150 ... ---------- */
@@ -1203,14 +1222,20 @@ function playerTotal(id){ return sum(computeTotals().byPlayer[id]); }
 
 /* Notes are shown one at a time, so a new note waits rather than replacing one on screen */
 const noteQueue = [];
-let noteShowing = false, noteTimer = null;
+let noteShowing = null, noteTimer = null;
 function queueNote(note){ noteQueue.push(note); if(!noteShowing) showNextNote(); }
 function closeNote(){ clearTimeout(noteTimer); showNextNote(); }
+// When a note's time is up it moves on, unless it is held open (a quote still being read out)
+function noteTimeUp(){
+  const wait = noteShowing && noteShowing.holdUntil ? noteShowing.holdUntil - Date.now() : 0;
+  if(wait > 0){ noteTimer = setTimeout(noteTimeUp, wait); return; }
+  showNextNote();
+}
 function showNextNote(){
   const note = noteQueue.shift();
   const box = $('note');
-  if(!note){ noteShowing = false; box.hidden = true; return; }
-  noteShowing = true;
+  if(!note){ noteShowing = null; box.hidden = true; return; }
+  noteShowing = note;
   $('noteMeeple').hidden = !note.meeple;
   if(note.meeple) $('noteMeeple').src = `icons/meeples/${note.meeple}.png`;
   $('noteName').textContent = note.name || '';
@@ -1230,7 +1255,7 @@ function showNextNote(){
   // Restart the entrance animation for each note
   box.style.animation = 'none'; void box.offsetWidth; box.style.animation = '';
   clearTimeout(noteTimer);
-  noteTimer = setTimeout(showNextNote, note.ms || 4500);
+  noteTimer = setTimeout(noteTimeUp, note.ms || 4500);
 }
 
 // A note when this player's total has passed a new multiple of 50 (the highest one passed)
@@ -1245,8 +1270,10 @@ function announceMilestone(p, before){
   lastMilestoneQuote = i;
   // 50, 150, 250 ... use the 50 tile; 100, 200, 300 ... use the 100 tile
   const tile = milestone % 100 === 50 ? 'icons/milestones/tile-50.jpg' : 'icons/milestones/tile-100.jpg';
-  queueNote({name: p.name, meeple: MEEPLES[p.color], text: `has reached ${milestone} points.`, img: tile, quote: MILESTONE_QUOTES[i], ms: 10000});
-  return true;
+  const note = {name: p.name, meeple: MEEPLES[p.color], text: `has reached ${milestone} points.`, img: tile, quote: MILESTONE_QUOTES[i], ms: 10000};
+  queueNote(note);
+  // Each quote has its own recording: sounds/quote-01.mp3 is the first quote in the list, and so on
+  return {note, sound: 'quote-' + String(i + 1).padStart(2, '0')};
 }
 
 /* Wonders of Humanity (only when that expansion is ticked).

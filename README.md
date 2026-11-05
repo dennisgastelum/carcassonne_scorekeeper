@@ -39,4 +39,4 @@ Upload the changed files to the repository. The app fetches them in the backgrou
 
 Unofficial fan-made tool, not affiliated with or endorsed by the publishers of Carcassonne. Carcassonne is a trademark of its respective owner.
 
-Bundled in `vendor/`, with licences alongside: [SheetJS](https://sheetjs.com) (Apache 2.0), [PDF.js](https://mozilla.github.io/pdf.js/) (Apache 2.0), [Fraunces](https://github.com/undercasetype/Fraunces) and [Work Sans](https://github.com/weiweihuanghuang/Work-Sans) (SIL Open Font License).
+Bundled in `vendor/`, with licences alongside: [SheetJS](https://sheetjs.com) (Apache 2.0), [PDF.js](https://mozilla.github.io/pdf.js/) (Apache 2.0), [Libre Caslon Text](https://github.com/impallari/Libre-Caslon-Text) and [Work Sans](https://github.com/weiweihuanghuang/Work-Sans) (SIL Open Font License).
