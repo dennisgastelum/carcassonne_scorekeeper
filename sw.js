@@ -1,7 +1,7 @@
 // Offline support. Files are served from the cache straight away and refreshed
 // in the background, so a new upload reaches players on their next app launch.
 // Change CACHE only if you rename or remove files in the ASSETS list.
-const CACHE = 'carcassonne-v25';
+const CACHE = 'carcassonne-v27';
 const ASSETS = [
   './',
   './index.html',
@@ -188,6 +188,8 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
+  // Songs are streamed in parts and can be large, so they go straight to the network and are not saved offline
+  if (new URL(e.request.url).pathname.includes('/music/') || e.request.headers.has('range')) return;
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const cached = await cache.match(e.request, {ignoreSearch: true});

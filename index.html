@@ -67,6 +67,25 @@
   .card h2::before{content:''; width:8px; height:8px; background:var(--ink); display:inline-block; transform:rotate(45deg);}
   .card-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
   .head-btns{display:flex; gap:6px; flex-shrink:0;}
+  .mode-pick{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px;}
+  .mode-opt{display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1.5px solid var(--line); border-radius:6px; cursor:pointer; background:#fff;}
+  .mode-opt:has(input:checked){border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink);}
+  .mode-opt input{-webkit-appearance:none; appearance:none; width:20px; height:20px; margin:1px 0 0; flex-shrink:0; display:grid; place-content:center; background:#fff; border:1.5px solid var(--ink); border-radius:50%; cursor:pointer;}
+  .mode-opt input:checked::after{content:''; width:10px; height:10px; border-radius:50%; background:var(--ink);}
+  .mode-opt input:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  .mode-opt strong{display:block;}
+  .mode-opt small{display:block; color:var(--ink-soft); font-size:.85rem; line-height:1.35; margin-top:2px;}
+  .select-row.off .row-label{opacity:.45;}
+  @media (max-width:600px){ .mode-pick{grid-template-columns:1fr;} }
+  .music-set{display:flex; flex-wrap:wrap; align-items:center; gap:10px 24px;}
+  .music-check{display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;}
+  .music-check input{-webkit-appearance:none; appearance:none; width:20px; height:20px; margin:0; flex-shrink:0; display:grid; place-content:center; background:#fff; border:1.5px solid var(--ink); border-radius:0; cursor:pointer;}
+  .music-check input:checked{background:var(--ink);}
+  .music-check input:checked::after{content:''; width:5px; height:10px; border:solid var(--parchment); border-width:0 2px 2px 0; transform:translateY(-1px) rotate(45deg);}
+  .music-check input:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  .music-vol{display:flex; align-items:center; gap:10px; font-weight:600;}
+  .music-vol input{width:min(220px, 50vw); accent-color:var(--ink);}
+  .music-info{margin:10px 0 0; font-size:.88rem; color:var(--ink-soft); line-height:1.45;}
   .card-head h2{margin:0;}
   .btn{padding:10px 16px; border:1.5px solid var(--ink); background:var(--ink); color:var(--parchment); font-weight:600; font-size:.9rem; cursor:pointer;}
   .btn.secondary{background:transparent; color:var(--ink);}
@@ -188,7 +207,32 @@
 
   [hidden]{display:none!important;}
   .rightcol{display:flex; flex-direction:column; gap:12px; min-height:0; min-width:0;}
-  .view-switch{flex:0 0 auto; display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .view-switch{flex:0 0 auto; display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px;}
+  /* Scores view: the standings in big figures, one row per player, filling the column */
+  #viewStandings{flex:1 1 0; min-height:0; display:flex; flex-direction:column;}
+  .stand-list{list-style:none; margin:0; padding:0; flex:1 1 auto; min-height:0; display:flex; flex-direction:column; gap:8px;}
+  .stand-row{flex:1 1 0; min-height:56px; max-height:130px; display:flex; align-items:center; gap:14px; padding:6px 18px 6px 14px; background:transparent; border:none;}
+  .stand-rank{font-family:'Libre Caslon Text',Georgia,serif; font-size:1.5rem; color:var(--ink-soft); width:1.6ch; text-align:center; flex-shrink:0; font-variant-numeric:tabular-nums;}
+  .stand-row .meeple{width:clamp(28px, 5vh, 44px); height:auto; flex-shrink:0;}
+  .stand-name{flex:1 1 auto; min-width:0; font-size:clamp(1.15rem, 3.2vh, 1.7rem); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .stand-pts{font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; font-size:clamp(2.2rem, 8vh, 4.6rem); line-height:1; font-variant-numeric:tabular-nums; flex-shrink:0;}
+  .stand-row.lead .stand-name::after{content:' ♛'; font-size:.85em;}
+  .stand-main{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:4px;}
+  .stand-main .stand-name{flex:0 0 auto;}
+  .badges{display:flex; flex-wrap:wrap; gap:4px 6px;}
+  .badge{display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:28px; padding:3px; border:0; border-radius:0; background:transparent; font-size:.7rem; font-weight:600;}
+  .badge img{width:20px !important; height:20px !important; flex-shrink:0;}
+  .clock{flex:0 0 auto; display:flex; flex-direction:column; gap:6px; margin-top:8px; padding:10px 18px 2px 14px; border-top:1px solid var(--line);}
+  .clock-row{display:flex; align-items:center; gap:14px;}
+  .clock-row .clock-label{width:7.2rem; flex-shrink:0; display:flex; align-items:center; gap:6px; white-space:nowrap;}
+  .clock-label .meeple{width:20px; height:auto;}
+  .clock-time.turn{flex:0 0 auto; font-size:clamp(1.25rem, 3.4vh, 1.8rem);}
+  .river-note{margin-left:auto; font-size:.85rem; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
+  .stand-time{font-family:'Libre Caslon Text',Georgia,serif; font-size:clamp(1rem, 2.6vh, 1.4rem); color:var(--ink-soft); font-variant-numeric:tabular-nums; flex-shrink:0; margin-right:6px;}
+  .clock-label{font-size:.75rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);}
+  .clock-time{flex:1 1 auto; font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; font-size:clamp(1.6rem, 4.5vh, 2.4rem); font-variant-numeric:tabular-nums; line-height:1;}
+  .clock.paused .clock-time{opacity:.45;}
+  .clock.idle .clock-time{opacity:.35;}
   .vtab{padding:9px 12px; border:1.5px solid var(--ink); background:transparent; color:var(--ink); font-weight:600; font-size:.9rem; cursor:pointer;}
   .vtab.active{background:var(--ink); color:var(--parchment);}
   #viewScores{flex:1 1 0; min-height:0; display:flex; flex-direction:column; gap:12px;}
@@ -264,7 +308,8 @@
     .log-card{flex:0 0 auto;}
     .log{max-height:320px;}
     .score-card{max-height:none; overflow:visible;}
-    #viewScores, #viewRules, #ruleListView, #ruleReader{flex:0 0 auto;}
+    #viewScores, #viewRules, #viewStandings, #ruleListView, #ruleReader{flex:0 0 auto;}
+    .stand-row{flex:0 0 auto; min-height:72px;}
     .rule-list{flex:0 0 auto; overflow:visible;}
     .rule-pages{flex:0 0 auto; height:75dvh;}
   }
@@ -333,6 +378,14 @@
   <div id="tab-setup" class="tabpane">
     <div class="setup-wrap">
       <section class="card">
+        <h2>Scoring mode</h2>
+        <div class="mode-pick" role="radiogroup" aria-label="Scoring mode">
+          <label class="mode-opt"><input type="radio" name="mode" value="simple"><span><strong>Simple</strong><small>Points only. No tile to choose, and no turn numbers or tile counts.</small></span></label>
+          <label class="mode-opt"><input type="radio" name="mode" value="extended"><span><strong>Extended</strong><small>Points and tiles: where each tile came from, turn numbers and tile counts.</small></span></label>
+        </div>
+      </section>
+
+      <section class="card">
         <h2>Players</h2>
         <ul class="player-list" id="playerList"></ul>
         <div class="add-player" id="addPlayerRow">
@@ -351,6 +404,18 @@
         <div id="expChecklist"></div>
       </section>
 
+      <section class="card">
+        <div class="card-head">
+          <h2>Music</h2>
+          <span class="count" id="musicCount"></span>
+        </div>
+        <div class="music-set">
+          <label class="music-check"><input type="checkbox" id="musicOn"> Play music during the game</label>
+          <label class="music-vol" for="musicVol">Volume <input type="range" id="musicVol" min="0" max="100" step="5"></label>
+        </div>
+        <p class="music-info" id="musicInfo"></p>
+      </section>
+
       <div class="setup-footer">
         <div class="tile-sum" id="tileSum"></div>
         <span class="info" id="setupInfo"></span>
@@ -367,6 +432,7 @@
       <div class="card-head">
         <h2>Log a Score</h2>
         <div class="head-btns">
+          <button class="btn secondary small" id="musicBtn" aria-pressed="true" hidden>Music on</button>
           <button class="btn secondary small" id="soundBtn" aria-pressed="true">Sound on</button>
           <button class="btn secondary small" data-goto="setup">Setup</button>
         </div>
@@ -403,9 +469,29 @@
 
     <div class="rightcol">
       <div class="view-switch">
-        <button class="vtab" data-view="scores">Scores</button>
+        <button class="vtab" data-view="standings">Scores</button>
+        <button class="vtab" data-view="scores">Expanded Scores</button>
         <button class="vtab" data-view="rules">Rulebooks</button>
       </div>
+      <section class="card" id="viewStandings" hidden>
+        <div class="card-head">
+          <h2>Scores</h2>
+          <button class="btn small" id="shareBtn" hidden>Share</button>
+        </div>
+        <ol class="stand-list" id="standList"></ol>
+        <div class="clock" id="clock">
+          <div class="clock-row" id="turnClockRow">
+            <span class="clock-label" id="turnLabel">This turn</span>
+            <span class="clock-time turn" id="turnTime">0:00</span>
+            <span class="river-note" id="riverNote"></span>
+          </div>
+          <div class="clock-row">
+            <span class="clock-label">Game time</span>
+            <span class="clock-time" id="clockTime">0:00</span>
+            <button class="btn secondary small" id="clockBtn">Pause</button>
+          </div>
+        </div>
+      </section>
       <div id="viewScores">
       <section class="card log-card">
         <h2>Turn Log</h2>
@@ -595,6 +681,8 @@ function tilesInSource(name){
   return landscapeTiles(name);
 }
 const tileSources = () => [BASE_RULEBOOK_NAME, ...orderedEnabled().filter(n=>tilesInSource(n)>0)];
+// Simple mode keeps score only: no tiles, no turn numbers, no tile counts. Extended mode tracks tiles too.
+const simpleMode = ()=> state.ui.mode === 'simple';
 // True when this tile was the last one of the base game or an expansion (the River does not count)
 function sourceFinished(source){
   if(!source || source === 'River') return false;
@@ -608,6 +696,8 @@ function tilesPlayed(){
 }
 const tileSummary = () => {
   const t = tileTotals();
+  // Simple mode shows only the total; Extended splits it into starting, River and landscape tiles
+  if(simpleMode()) return `<strong>Tiles in this game</strong> Total <b>${t.total}</b>`;
   return `<strong>Tiles in this game</strong> ${tileMark('s', t.s)}${tileMark('r', t.r)}${tileMark('l', t.l)} Total <b>${t.total}</b>`;
 };
 const expIcon = name => EXPANSION_ICONS[name] ? `<img class="exp-icon" src="icons/expansions/${EXPANSION_ICONS[name]}.png" alt="">` : '';
@@ -628,7 +718,7 @@ const playerById = id => state.players.find(p=>p.id===id);
 
 const BASE_RULEBOOK_NAME = 'Base Game';
 function freshState(){
-  return {players:[], enabled:[], entries:[], wonderNotes:{first:[], second:[]}, ui:{playerId:null, turnPlayerId:null, cat:null, expansion:null, finalScoring:false, rightView:'scores', tileFrom:null, sound:true}};
+  return {players:[], enabled:[], entries:[], wonderNotes:{first:[], second:[]}, ui:{playerId:null, turnPlayerId:null, cat:null, expansion:null, finalScoring:false, rightView:'standings', tileFrom:null, sound:true, music:false, musicVolume:35, musicPaused:false, gameStart:null, introPlayed:false, mode:'extended', clockPausedAt:null, clockPausedMs:0, playerTime:{}, timedPlayer:null, timedFrom:0, riverOn:false, riverFrom:0, riverMs:null}};
 }
 let state = freshState();
 let chosenColor = null;
@@ -653,6 +743,7 @@ function loadState(){
   }catch(e){}
 }
 function save(){
+  syncTurnClock();
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
 }
 
@@ -665,7 +756,7 @@ function sanitize(){
   state.wonderNotes.first = state.wonderNotes.first.filter(id=>ids.includes(id));
   state.wonderNotes.second = state.wonderNotes.second.filter(id=>ids.includes(id));
   if(!CATS.some(c=>c.id===state.ui.cat)) state.ui.cat = null;
-  if(state.ui.rightView!=='rules') state.ui.rightView = 'scores';
+  if(!['standings','scores','rules'].includes(state.ui.rightView)) state.ui.rightView = 'standings';
   if(state.ui.tileFrom && !tileSources().includes(state.ui.tileFrom)) state.ui.tileFrom = null;
   if(state.ui.cat==='field' && !state.ui.finalScoring) state.ui.cat = null;
   if(state.ui.cat!=='expansion' || !state.enabled.includes(state.ui.expansion)) state.ui.expansion = null;
@@ -719,13 +810,18 @@ function scoreSound(cat, expansion, pts){
 let audioCtx = null;
 const soundBuffers = {};
 function audio(){
-  if(!audioCtx){
+  // A closed sound system cannot be restarted, so a new one is made (decoded sounds still work in it)
+  if(!audioCtx || audioCtx.state === 'closed'){
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if(!Ctx) return null;
     audioCtx = new Ctx();
   }
-  if(audioCtx.state === 'suspended') audioCtx.resume();
+  if(audioCtx.state !== 'running') audioCtx.resume().catch(()=>{});
   return audioCtx;
+}
+// Wakes the sound system again after Android paused it, so the next sound is not lost
+function wakeAudio(){
+  if(audioCtx && audioCtx.state !== 'running' && document.visibilityState === 'visible') audioCtx.resume().catch(()=>{});
 }
 // Each sound is fetched and decoded once, then reused
 function loadSound(name){
@@ -743,7 +839,9 @@ function playSounds(names){
   names = names.filter(Boolean);
   if(!names.length || state.ui.sound === false) return Promise.resolve({});
   const ctx = audio(); if(!ctx) return Promise.resolve({});
-  return Promise.all(names.map(loadSound)).then(buffers=>{
+  // Android can pause the sound system (for example after a notification); wait until it runs again
+  const ready = ctx.state === 'running' ? Promise.resolve() : ctx.resume().catch(()=>{});
+  return Promise.all([ready, ...names.map(loadSound)]).then(([, ...buffers])=>{
     const start = ctx.currentTime + 0.02, ends = {};
     let at = start;
     buffers.forEach((buffer, k)=>{
@@ -757,6 +855,237 @@ function playSounds(names){
   });
 }
 function playSound(name){ playSounds([name]); }
+
+/* ---------- Music: four stages of songs from the repository's music folder ----------
+   I. Dark opens each game with one random song. Then II. Feudal plays; once the game has run
+   30 minutes the next song comes from III. Castle, and after 60 minutes from IV. Imperial.
+   The song already playing is never cut off. Songs are listed through GitHub, so adding a file
+   to a folder is enough. music/playlist.json is a fallback:
+   {"dark":["a.mp3"], "feudal":["b.mp3"], "castle":["c.mp3"], "imperial":["d.mp3"]} */
+const MUSIC_STAGES = [
+  {key:'dark',     label:'I. Dark',      opener:true},
+  {key:'feudal',   label:'II. Feudal',   from:0},
+  {key:'castle',   label:'III. Castle',  from:30},
+  {key:'imperial', label:'IV. Imperial', from:60},
+  {key:'endgame',  label:'Endgame',      endgame:true}
+];
+const MUSIC_TIMED = MUSIC_STAGES.filter(st=>!st.opener && !st.endgame);
+const MUSIC_STORE = 'carcassonne-music-stages';
+const emptyLists = ()=> Object.fromEntries(MUSIC_STAGES.map(st=>[st.key, []]));
+const musicEl = new Audio();
+musicEl.preload = 'auto';
+let musicLists = emptyLists(), musicBags = emptyLists();
+let musicFound = null, lastSong = null, musicErrors = 0, duckTimer = null;
+let musicHold = false; // true while the final scoring sound plays, before the Endgame songs
+try{ const saved = JSON.parse(localStorage.getItem(MUSIC_STORE) || 'null'); if(saved) musicLists = Object.assign(emptyLists(), saved); }catch(e){}
+const songCount = ()=> MUSIC_STAGES.reduce((n, st)=> n + musicLists[st.key].length, 0);
+
+// owner and repository name from the GitHub Pages address, e.g. name.github.io/repo/
+function githubRepo(){
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  const repo = location.pathname.split('/').filter(Boolean)[0];
+  return m && repo ? {owner:m[1], repo} : null;
+}
+async function loadMusicLists(){
+  const gh = githubRepo();
+  let ok = false;
+  if(gh && navigator.onLine){
+    const lists = emptyLists();
+    ok = true;
+    for(const st of MUSIC_STAGES){
+      try{
+        const res = await fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/music/${st.key}`);
+        if(res.status === 404) continue;          // folder not there yet
+        if(!res.ok){ ok = false; break; }
+        const items = await res.json();
+        lists[st.key] = items.filter(i=>i.type==='file' && /\.(mp3|m4a|ogg|wav)$/i.test(i.name)).map(i=>i.name).sort();
+      }catch(e){ ok = false; break; }
+    }
+    if(ok){ musicLists = lists; try{ localStorage.setItem(MUSIC_STORE, JSON.stringify(lists)); }catch(e){} }
+  }
+  if(!ok && !songCount()){
+    try{
+      const res = await fetch('music/playlist.json', {cache:'no-store'});
+      if(res.ok){ const j = await res.json(); musicLists = Object.assign(emptyLists(), j); ok = true; }
+    }catch(e){}
+  }
+  musicFound = ok || songCount() > 0;
+  musicBags = emptyLists();
+  renderMusic();
+}
+// Game clock: time since Start game, leaving out any time it was paused
+function gameElapsedMs(){
+  if(!state.ui.gameStart) return 0;
+  const until = state.ui.clockPausedAt || Date.now();
+  return Math.max(0, until - state.ui.gameStart - (state.ui.clockPausedMs || 0));
+}
+function minutesPlayed(){ return gameElapsedMs() / 60000; }
+function renderClock(){
+  const started = !!state.ui.gameStart, paused = !!state.ui.clockPausedAt;
+  // Game time is shown rounded down to the nearest 30 seconds
+  const t = Math.floor(gameElapsedMs() / 30000) * 30, h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, sec = t % 60;
+  $('clockTime').textContent = h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+  $('clock').classList.toggle('paused', paused);
+  $('clock').classList.toggle('idle', !started);
+  $('clockBtn').disabled = !started || state.ui.finalScoring; // the clocks stay stopped during final scoring
+  $('clockBtn').textContent = state.ui.finalScoring ? 'Stopped' : paused ? 'Resume' : 'Pause';
+  // This turn (or River), Extended mode only
+  const u = state.ui, ext = !simpleMode();
+  $('turnClockRow').hidden = !ext;
+  if(ext){
+    const who = playerById(u.turnPlayerId);
+    if(u.riverOn){
+      $('turnLabel').textContent = 'River';
+      $('turnTime').textContent = fmtTime(gameElapsedMs() - u.riverFrom);
+    } else {
+      $('turnLabel').innerHTML = 'This turn' + (started && who ? meeple(who.color) : '');
+      $('turnTime').textContent = fmtTime(started && u.timedPlayer ? gameElapsedMs() - u.timedFrom : 0);
+    }
+    $('riverNote').textContent = !u.riverOn && u.riverMs != null ? `River ${fmtTime(u.riverMs)}` : '';
+  }
+  document.querySelectorAll('.stand-time').forEach(el=>{ el.textContent = fmtTime10(playerTimeMs(el.dataset.p)); });
+}
+function toggleClock(){
+  if(!state.ui.gameStart) return;
+  if(state.ui.clockPausedAt){
+    state.ui.clockPausedMs = (state.ui.clockPausedMs || 0) + (Date.now() - state.ui.clockPausedAt);
+    state.ui.clockPausedAt = null;
+  } else {
+    state.ui.clockPausedAt = Date.now();
+  }
+  save(); renderClock();
+}
+
+/* ---------- Turn clock and time per player (Extended mode) ----------
+   All times are measured on the game clock, so pauses are left out. When the turn passes,
+   the time since the turn began is added to that player's total. A game with the River
+   first times the river; that ends when the first "Tile played from" is chosen. */
+function syncTurnClock(){
+  const u = state.ui;
+  if(!u.gameStart || simpleMode() || u.riverOn) return;
+  if(u.timedPlayer === u.turnPlayerId) return;
+  const now = gameElapsedMs();
+  if(u.timedPlayer && playerById(u.timedPlayer)){
+    u.playerTime = u.playerTime || {};
+    u.playerTime[u.timedPlayer] = (u.playerTime[u.timedPlayer] || 0) + Math.max(0, now - u.timedFrom);
+  }
+  u.timedPlayer = u.turnPlayerId || null;
+  u.timedFrom = now;
+}
+function endRiverTime(){
+  const u = state.ui;
+  u.riverMs = Math.max(0, gameElapsedMs() - u.riverFrom);
+  u.riverOn = false;
+  u.timedPlayer = null; // the first player's turn starts now
+}
+function resetTurnClock(){
+  Object.assign(state.ui, {playerTime:{}, timedPlayer:null, timedFrom:0, riverOn:false, riverFrom:0, riverMs:null});
+}
+// A player's total so far, including the turn being played now
+function playerTimeMs(id){
+  const u = state.ui;
+  let t = (u.playerTime || {})[id] || 0;
+  if(!u.riverOn && u.timedPlayer === id) t += Math.max(0, gameElapsedMs() - u.timedFrom);
+  return t;
+}
+function fmtTime(ms){
+  const t = Math.floor(ms / 1000), h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, sec = t % 60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+}
+// Player totals are shown to the nearest 10 seconds
+const fmtTime10 = ms => fmtTime(Math.round(ms / 10000) * 10000);
+
+// The latest stage whose start time has passed and that has songs; if none has, the first stage with songs
+function musicStageNow(){
+  const mins = minutesPlayed();
+  const due = MUSIC_TIMED.filter(st=> mins >= st.from && musicLists[st.key].length);
+  return due.length ? due[due.length-1] : MUSIC_TIMED.find(st=> musicLists[st.key].length) || null;
+}
+function nextSong(){
+  // During final scoring only the Endgame songs play
+  if(state.ui.finalScoring) return drawSong('endgame');
+  // The game opens with one random song from I. Dark
+  const opener = MUSIC_STAGES[0];
+  if(!state.ui.introPlayed && musicLists[opener.key].length && minutesPlayed() < MUSIC_TIMED[1].from){
+    state.ui.introPlayed = true; save();
+    const list = musicLists[opener.key];
+    return `music/${opener.key}/${list[Math.floor(Math.random() * list.length)]}`;
+  }
+  const st = musicStageNow(); if(!st) return null;
+  return drawSong(st.key);
+}
+// A shuffled bag per stage, so every song plays once before any repeats
+function drawSong(set){
+  const list = musicLists[set];
+  if(!list.length) return null;
+  if(!musicBags[set].length){
+    const bag = [...list];
+    for(let i=bag.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [bag[i], bag[j]] = [bag[j], bag[i]]; }
+    if(bag.length > 1 && `music/${set}/${bag[0]}` === lastSong) bag.push(bag.shift());
+    musicBags[set] = bag;
+  }
+  return `music/${set}/${musicBags[set].shift()}`;
+}
+const musicVolume = ()=> (state.ui.musicVolume ?? 35) / 100;
+function musicShouldPlay(){
+  return state.ui.music === true && !state.ui.musicPaused && !!state.ui.gameStart && state.players.length > 0
+    && songCount() > 0;
+}
+function playNextSong(){
+  const song = nextSong(); if(!song) return;
+  lastSong = song;
+  musicEl.src = song.split('/').map((part, i)=> i < 2 ? part : encodeURIComponent(part)).join('/');
+  musicEl.volume = musicVolume();
+  musicEl.play().catch(()=>{}); // without a tap first, the browser waits; the next tap starts it
+  renderMusic();
+}
+function startMusic(){
+  if(!musicShouldPlay() || musicHold) return;
+  if(musicEl.src && !musicEl.ended && musicEl.currentTime > 0) musicEl.play().catch(()=>{});
+  else playNextSong();
+}
+function stopMusic(){ musicEl.pause(); renderMusic(); }
+function resetMusic(){
+  musicEl.pause(); musicEl.removeAttribute('src'); musicEl.load();
+  musicBags = emptyLists(); lastSong = null; state.ui.musicPaused = false; state.ui.introPlayed = false;
+  renderMusic();
+}
+musicEl.addEventListener('ended', ()=>{ musicErrors = 0; if(musicShouldPlay()) playNextSong(); });
+musicEl.addEventListener('playing', ()=>{ musicErrors = 0; renderMusic(); });
+musicEl.addEventListener('error', ()=>{
+  // Skip a file that will not play, but stop after a few in a row so a broken list cannot loop forever
+  if(++musicErrors <= 3 && musicShouldPlay()) setTimeout(playNextSong, 800);
+});
+// Turns the music down while a quote is read out, then back up
+function duckMusic(ms){
+  if(musicEl.paused) return;
+  musicEl.volume = musicVolume() * 0.3;
+  clearTimeout(duckTimer);
+  duckTimer = setTimeout(()=>{ musicEl.volume = musicVolume(); }, ms);
+}
+function songTitle(path){ return decodeURIComponent(path.split('/').pop()).replace(/\.[a-z0-9]+$/i,'').replace(/[_-]+/g,' '); }
+const stageOf = path => MUSIC_STAGES.find(st=> path && path.startsWith(`music/${st.key}/`));
+function renderMusic(){
+  $('musicOn').checked = state.ui.music === true;
+  $('musicVol').value = state.ui.musicVolume ?? 35;
+  $('musicCount').textContent = musicFound === null ? '' : `${songCount()} songs`;
+  let info;
+  if(musicFound === null) info = 'Looking for songs…';
+  else if(!songCount()) info = 'No songs found yet. Upload MP3 files to the music/dark, music/feudal, music/castle, music/imperial and music/endgame folders in your repository.';
+  else{
+    const c = st => `${musicLists[st.key].length}`;
+    info = `I. Dark (${c(MUSIC_STAGES[0])} songs) opens each game with one song. II. Feudal (${c(MUSIC_STAGES[1])}) plays until 30 minutes, III. Castle (${c(MUSIC_STAGES[2])}) until 60 minutes, then IV. Imperial (${c(MUSIC_STAGES[3])}). Endgame (${c(MUSIC_STAGES[4])}) plays during final scoring. A song is never cut off when a stage changes; the next song comes from the new stage. Empty stages are skipped.`;
+  }
+  if(state.ui.music && lastSong && !musicEl.paused){
+    const st = stageOf(lastSong);
+    info += ` Now playing: ${songTitle(lastSong)}${st ? ' (' + st.label + ')' : ''}.`;
+  }
+  $('musicInfo').textContent = info;
+  const btn = $('musicBtn');
+  btn.hidden = !(state.ui.music === true && songCount() > 0);
+  btn.textContent = state.ui.musicPaused ? 'Music off' : 'Music on';
+  btn.setAttribute('aria-pressed', state.ui.musicPaused ? 'false' : 'true');
+}
 // Loads every sound after the first tap, so the first play of each is not delayed
 function preloadSounds(){
   if(state.ui.sound === false || !audio()) return;
@@ -805,13 +1134,14 @@ function renderSetup(){
       <div class="exp-group-head"><h3>${esc(g.label)}</h3>${g.items.length>1?`<span class="count">${n}/${g.items.length}</span>
         <button class="btn small secondary" data-gall="${gi}">All</button>
         <button class="btn small secondary" data-gnone="${gi}">None</button>`:''}</div>
-      <div class="exp-grid">${g.items.map((it,ii)=>`<label class="exp-item"><input type="checkbox" data-g="${gi}" data-i="${ii}"${state.enabled.includes(it)?' checked':''}>${expIcon(it)}<span class="exp-name">${esc(it)}</span>${tileLabel(it)?`<span class="exp-tiles">${tileLabel(it)}</span>`:''}</label>`).join('')}</div>
+      <div class="exp-grid">${g.items.map((it,ii)=>`<label class="exp-item"><input type="checkbox" data-g="${gi}" data-i="${ii}"${state.enabled.includes(it)?' checked':''}>${expIcon(it)}<span class="exp-name">${esc(it)}</span>${tileLabel(it) && !simpleMode() ?`<span class="exp-tiles">${tileLabel(it)}</span>`:''}</label>`).join('')}</div>
     </div>`;
   }).join('');
   $('expCount').textContent = `${state.enabled.length} selected`;
 
   $('setupInfo').textContent = `${state.players.length} player${state.players.length===1?'':'s'} · ${state.enabled.length} expansion${state.enabled.length===1?'':'s'}`;
   $('tileSum').innerHTML = tileSummary();
+  document.querySelectorAll('input[name=mode]').forEach(r=>{ r.checked = r.value === (state.ui.mode || 'extended'); });
   $('startBtn').disabled = state.players.length===0;
 }
 
@@ -857,8 +1187,10 @@ function renderGame(){
   }).join('');
 
   $('noScoreBtn').disabled = !has || state.ui.finalScoring;
-  $('extraTileBtn').disabled = !has || state.ui.finalScoring;
-  $('undoTileBtn').disabled = state.ui.finalScoring || !state.entries.some(e=>e.tile);
+  $('extraTileBtn').disabled = !has || state.ui.finalScoring || simpleMode();
+  // In Simple mode there are no tiles, so Undo removes the latest log line instead
+  $('undoTileBtn').textContent = simpleMode() ? 'Undo' : 'Undo tile';
+  $('undoTileBtn').disabled = state.ui.finalScoring || !(simpleMode() ? state.entries.length : state.entries.some(e=>e.tile));
   $('finalBtn').innerHTML = state.ui.finalScoring ? 'Back to game' : '<img src="icons/final-scoring.png" alt="">Go to final scoring';
   renderExpRow();
   renderRightView();
@@ -892,7 +1224,8 @@ function renderExpRow(){
   const played = tilesPlayed().by;
   const sources = tileSources().map(n=>({value:n, text:`${n} (${played[n]||0}/${tilesInSource(n)})`, icon:sourceIcon(n)}));
   $('gTileRow').innerHTML = '<label class="row-label" for="tileFromSelect">Tile played from</label><div class="dd-wrap">' +
-    dropdown('tileFromSelect', state.ui.tileFrom, [{items:sources}], 'Choose expansion', state.ui.finalScoring) + '</div>';
+    dropdown('tileFromSelect', simpleMode() ? null : state.ui.tileFrom, [{items:sources}], simpleMode() ? 'Not needed in Simple mode' : 'Choose expansion', state.ui.finalScoring || simpleMode()) + '</div>';
+  $('gTileRow').classList.toggle('off', simpleMode());
   $('gExpRow').innerHTML = '<label class="row-label" for="expSelect">Points from expansion</label><div class="dd-wrap">' +
     dropdown('expSelect', state.ui.expansion, groups.map(g=>({items:g.items})), none ? 'No expansions ticked in Setup' : 'Choose expansion', !active || none) + '</div>' +
     (active && none ? '<p class="empty exp-hint"><button class="btn small secondary" data-goto="setup">Choose in Setup</button></p>' : '');
@@ -940,6 +1273,7 @@ function defaultExpansionFromTile(){
 function chooseDropdown(btnId, value){
   if(btnId==='tileFromSelect'){
     state.ui.tileFrom = value || null;
+    if(value && state.ui.riverOn) endRiverTime();
     defaultExpansionFromTile();
   }
   if(btnId==='expSelect') state.ui.expansion = value || null;
@@ -973,7 +1307,7 @@ function turnNumbers(){
 
 // Symbols for what scored / which tile it came from. The title keeps the words for hover and screen readers.
 function logDescription(e, c){
-  const source = e.from || e.tile;
+  const source = simpleMode() ? null : (e.from || e.tile);
   const noScore = e.hidden ? (e.spring ? 'River spring' : e.stay ? (e.tile ? 'Extra tile' : 'No score, same turn') : 'No score') : null;
   const scoredHtml = noScore ? esc(noScore) : (e.subtype ? expIcon(e.subtype) : catIcon(c));
   const scoredText = noScore || e.subtype || c.label;
@@ -993,7 +1327,7 @@ function renderLog(){
     const p = playerById(e.playerId); if(!p) return '';
     const c = e.hidden ? null : catInfo(e.category);
     const what = logDescription(e, c);
-    return `<div class="tile${e.id===lastAddedId?' new':''}" style="border-left-color:${c ? c.hex : 'var(--road)'}"><span class="n">#${turns[i]}</span><span class="pname">${meeple(p.color)}${esc(p.name)}</span><span class="what" title="${esc(what.title)}" aria-label="${esc(what.title)}">${what.html}</span><span class="pts">+${e.points}</span><button class="del" data-del="${e.id}" aria-label="Undo this entry">✕</button></div>`;
+    return `<div class="tile${e.id===lastAddedId?' new':''}" style="border-left-color:${c ? c.hex : 'var(--road)'}">${simpleMode() ? '' : `<span class="n">#${turns[i]}</span>`}<span class="pname">${meeple(p.color)}${esc(p.name)}</span><span class="what" title="${esc(what.title)}" aria-label="${esc(what.title)}">${what.html}</span><span class="pts">+${e.points}</span><button class="del" data-del="${e.id}" aria-label="Undo this entry">✕</button></div>`;
   }).join('');
 }
 
@@ -1018,6 +1352,7 @@ function computeTotals(){
 
 function renderScore(){
   const wrap = $('scoreWrap'), pl = state.players;
+  renderStandings();
   if(!pl.length){ wrap.innerHTML = '<p class="empty">Add players in Setup to see the breakdown.</p>'; $('scoreTiles').innerHTML = ''; return; }
   const T = computeTotals();
   const played = tilesPlayed(), tt = tileTotals();
@@ -1031,14 +1366,79 @@ function renderScore(){
     if(c.id==='expansion'){
       T.expOrder.forEach(name=>{
         const totalTiles = tilesInSource(name);
-        h += `<tr class="sub"><td>${expIcon(name)}${esc(name)}${totalTiles ? ` (${played.by[name]||0}/${totalTiles})` : ''}</td>` + pl.map(p=>`<td>${T.byExp[name][p.id]||0}</td>`).join('') + '</tr>';
+        h += `<tr class="sub"><td>${expIcon(name)}${esc(name)}${totalTiles ? (simpleMode() ? ` (${totalTiles})` : ` (${played.by[name]||0}/${totalTiles})`) : ''}</td>` + pl.map(p=>`<td>${T.byExp[name][p.id]||0}</td>`).join('') + '</tr>';
       });
     }
   });
   h += '<tr class="total-row"><td>Total</td>' + totals.map(t=>`<td class="${t===top && t>0?'leader':''}">${t}</td>`).join('') + '</tr></tbody></table>';
   wrap.innerHTML = h;
   // The tile count sits in a footer outside the scrolling table, so it stays visible
-  $('scoreTiles').innerHTML = `<p class="tile-sum score-tiles"><strong>Tiles in this game</strong> ${tileMark('s', tt.s)}${tileMark('r', tt.r)}<span class="tile-mark" title="Base Game">${baseIcon()}${basePlayed}/${BASE_TILES.l}</span>${tileMark('l', `${landPlayed}/${tt.l-BASE_TILES.l}`)}<span class="tile-part">Total <b id="tilesPlayedTotal">${tt.s+played.total}/${tt.total}</b></span></p>`;
+  // Simple mode shows only how many tiles the game has; Extended shows how many have been played
+  $('scoreTiles').innerHTML = simpleMode() ? `<p class="tile-sum score-tiles"><strong>Tiles in this game</strong><span class="tile-part">Total <b>${tt.total}</b></span></p>` : `<p class="tile-sum score-tiles"><strong>Tiles in this game</strong> ${tileMark('s', tt.s)}${tileMark('r', tt.r)}<span class="tile-mark" title="Base Game">${baseIcon()}${basePlayed}/${BASE_TILES.l}</span>${tileMark('l', `${landPlayed}/${tt.l-BASE_TILES.l}`)}<span class="tile-part">Total <b id="tilesPlayedTotal">${tt.s+played.total}/${tt.total}</b></span></p>`;
+}
+
+/* ---------- Badges and sharing the results (final scoring) ---------- */
+// Categories in the order roads, cities, monasteries, each expansion, fields; ties all get the badge
+function computeBadges(){
+  const T = computeTotals(), pl = state.players, out = {};
+  pl.forEach(p=>out[p.id] = []);
+  const cats = [
+    ...['road','city','monastery'].map(id=>{ const c = catInfo(id); return {label:c.plural, icon:catIcon(c), score:p=>T.byPlayer[p.id][id]}; }),
+    ...T.expOrder.map(name=>({label:name, icon:expIcon(name), score:p=>T.byExp[name][p.id] || 0})),
+    (c=>({label:c.plural, icon:catIcon(c), score:p=>T.byPlayer[p.id].field}))(catInfo('field'))
+  ];
+  cats.forEach(cat=>{
+    const best = Math.max(0, ...pl.map(cat.score));
+    if(best > 0) pl.forEach(p=>{ if(cat.score(p) === best) out[p.id].push({label:cat.label, icon:cat.icon, points:best}); });
+  });
+  return out;
+}
+const badgeHtml = list => list && list.length
+  ? `<span class="badges">${list.map(b=>`<span class="badge" title="Most points for ${esc(b.label)}: ${b.points}" aria-label="Most points for ${esc(b.label)}">${b.icon || esc(b.label)}</span>`).join('')}</span>` : '';
+function resultsText(){
+  const T = computeTotals(), badges = computeBadges();
+  const rows = state.players.map((p, order)=>({p, order, total:sum(T.byPlayer[p.id])}))
+    .sort((a,b)=> b.total - a.total || a.order - b.order);
+  const date = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+  const lines = [`Carcassonne results, ${date}`, ''];
+  rows.forEach(r=>{
+    const rank = 1 + rows.filter(o=>o.total > r.total).length;
+    lines.push(`${rank}. ${r.p.name}: ${r.total} point${r.total===1?'':'s'}`);
+    const b = badges[r.p.id];
+    if(b.length) lines.push(`   Most points for ${b.map(x=>x.label).join(', ')}`);
+  });
+  if(state.ui.gameStart){ lines.push(''); lines.push(`Game time: ${fmtTime(Math.floor(gameElapsedMs() / 30000) * 30000)}`); }
+  if(state.enabled.length) lines.push(`Expansions: ${orderedEnabled().join(', ')}`);
+  return lines.join('\n');
+}
+// Copies the results as text; falls back to the tablet's share sheet, then to an old-style copy
+async function shareResults(){
+  const text = resultsText();
+  try{ await navigator.clipboard.writeText(text); toast('Results copied. Paste them into a message or note.'); return; }catch(e){}
+  try{ if(navigator.share){ await navigator.share({text}); return; } }catch(e){ return; }
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  const ok = document.execCommand && document.execCommand('copy');
+  ta.remove();
+  toast(ok ? 'Results copied. Paste them into a message or note.' : 'Could not copy the results on this device.', !ok);
+}
+
+// Scores view: players by total points, highest first; equal totals share a place
+function renderStandings(){
+  const list = $('standList'), pl = state.players;
+  if(!pl.length){ list.innerHTML = '<li class="empty">Add players in Setup to see the scores.</li>'; $('shareBtn').hidden = true; return; }
+  const T = computeTotals();
+  const rows = pl.map((p, order)=>({p, order, total:sum(T.byPlayer[p.id])}))
+    .sort((a,b)=> b.total - a.total || a.order - b.order);
+  const top = rows[0].total;
+  // During final scoring each player shows a badge for every category where they scored the most
+  const final = !!state.ui.finalScoring, badges = final ? computeBadges() : {};
+  $('shareBtn').hidden = !final;
+  list.innerHTML = rows.map(r=>{
+    const rank = 1 + rows.filter(o=>o.total > r.total).length;
+    return `<li class="stand-row${r.total===top && top>0 ? ' lead' : ''}"><span class="stand-rank">${rank}</span>${meeple(r.p.color)}<span class="stand-main"><span class="stand-name">${esc(r.p.name)}</span>${final ? badgeHtml(badges[r.p.id]) : ''}</span>${simpleMode() ? '' : `<span class="stand-time" data-p="${r.p.id}">${fmtTime10(playerTimeMs(r.p.id))}</span>`}<span class="stand-pts">${r.total}</span></li>`;
+  }).join('');
 }
 
 let toastTimer;
@@ -1061,7 +1461,7 @@ function nextPlayer(){
    (no turn), then each remaining river tile is one turn with no score, in player order.
    Only runs on a fresh game, so pressing Start game again later changes nothing. */
 function logRiverStart(){
-  if(!state.enabled.includes('River') || !state.players.length || state.entries.length) return;
+  if(simpleMode() || !state.enabled.includes('River') || !state.players.length || state.entries.length) return;
   const riverTiles = tileTotals().r;
   if(riverTiles < 1) return;
   const n = state.players.length;
@@ -1087,12 +1487,14 @@ function logRiverStart(){
 // A tile with no score
 function logTileOnly(advance){
   const p = playerById(state.ui.turnPlayerId); if(!p || state.ui.finalScoring) return;
-  if(!state.ui.tileFrom){ toast('Choose where the tile came from first.', true); return; }
-  const entry = {id:uid(), playerId:p.id, category:null, subtype:null, points:0, stay:!advance, hidden:true, tile:state.ui.tileFrom, turn:state.ui.turnPlayerId};
+  if(simpleMode() && !advance) return; // +1 tile only exists in Extended mode
+  if(!simpleMode() && !state.ui.tileFrom){ toast('Choose where the tile came from first.', true); return; }
+  const entry = {id:uid(), playerId:p.id, category:null, subtype:null, points:0, stay:!advance, hidden:true, turn:state.ui.turnPlayerId};
+  if(!simpleMode()) entry.tile = state.ui.tileFrom;
   state.entries.push(entry);
   lastAddedId = entry.id;
   state.ui.tileFrom = null;
-  let msg = `${advance?'No score':'Extra tile'} for ${p.name}. Tile: ${entry.tile}`;
+  let msg = `${advance?'No score':'Extra tile'} for ${p.name}` + (entry.tile ? `. Tile: ${entry.tile}` : '');
   if(advance){
     const next = nextPlayer();
     state.ui.playerId = next.id; state.ui.turnPlayerId = next.id; state.ui.cat = null; state.ui.expansion = null; bonus = 0;
@@ -1106,7 +1508,7 @@ function logTileOnly(advance){
 // The turn only moves back if nothing has been logged since.
 function undoTile(){
   let i = state.entries.length-1;
-  while(i>=0 && !state.entries[i].tile) i--;
+  if(!simpleMode()) while(i>=0 && !state.entries[i].tile) i--;
   if(i<0 || state.ui.finalScoring) return;
   const e = state.entries[i], wasLast = i===state.entries.length-1;
   state.entries.splice(i,1);
@@ -1116,11 +1518,11 @@ function undoTile(){
     state.ui.playerId = e.playerId;
     if(!e.hidden){ state.ui.cat = e.category; state.ui.expansion = e.subtype || null; }
   }
-  if(wasLast) state.ui.tileFrom = e.tile;
+  if(wasLast && e.tile) state.ui.tileFrom = e.tile;
   bonus = 0;
   const p = playerById(e.playerId);
   save(); renderGame();
-  toast(`Undone: ${e.hidden ? (e.stay ? 'extra tile' : 'no score') : '+'+e.points+' '+catInfo(e.category).label} for ${p?p.name:'player'}. Tile: ${e.tile}`);
+  toast(`Undone: ${e.hidden ? (e.stay ? (e.tile ? 'extra tile' : 'no score, same turn') : 'no score') : '+'+e.points+' '+catInfo(e.category).label} for ${p?p.name:'player'}` + (e.tile ? `. Tile: ${e.tile}` : ''));
   playSound(EVENT_SOUNDS.undo);
 }
 
@@ -1140,12 +1542,12 @@ function logScore(pts, advance){
     playSound(EVENT_SOUNDS.noScore);
     return;
   }
-  if(!state.ui.finalScoring && !state.ui.tileFrom){ toast('Choose where the tile came from first.', true); return; }
+  if(!state.ui.finalScoring && !simpleMode() && !state.ui.tileFrom){ toast('Choose where the tile came from first.', true); return; }
   if(!state.ui.cat){ toast('Pick a feature first.', true); return; }
   const isExp = state.ui.cat==='expansion';
   if(isExp && !state.ui.expansion){ toast('Choose an expansion first.', true); return; }
-  const entry = {id:uid(), playerId:p.id, category:state.ui.cat, subtype:isExp?state.ui.expansion:null, points:pts, stay:!advance, from:state.ui.finalScoring ? null : state.ui.tileFrom, turn:state.ui.turnPlayerId};
-  const countsTile = advance && !state.ui.finalScoring;
+  const entry = {id:uid(), playerId:p.id, category:state.ui.cat, subtype:isExp?state.ui.expansion:null, points:pts, stay:!advance, from:state.ui.finalScoring || simpleMode() ? null : state.ui.tileFrom, turn:state.ui.turnPlayerId};
+  const countsTile = advance && !state.ui.finalScoring && !simpleMode();
   if(countsTile){ entry.tile = state.ui.tileFrom; state.ui.tileFrom = null; }
   const totalBefore = playerTotal(p.id); // measured before the new line is added
   state.entries.push(entry);
@@ -1172,7 +1574,10 @@ function logScore(pts, advance){
   if(countsTile && sourceFinished(entry.tile)) sounds.push(EVENT_SOUNDS.sourceDone);
   playSounds(sounds).then(ends=>{
     // Keep the points popup up until its quote has been read out, plus a moment
-    if(milestone && ends[milestone.sound]) milestone.note.holdUntil = Date.now() + ends[milestone.sound] + 1500;
+    if(milestone && ends[milestone.sound]){
+      milestone.note.holdUntil = Date.now() + ends[milestone.sound] + 1500;
+      duckMusic(ends[milestone.sound] + 300); // music goes quiet while the quote is read out
+    }
   });
 }
 
@@ -1260,6 +1665,7 @@ function showNextNote(){
 
 // A note when this player's total has passed a new multiple of 50 (the highest one passed)
 function announceMilestone(p, before){
+  if(state.ui.finalScoring) return false; // no points popups or spoken quotes during final scoring
   const after = playerTotal(p.id);
   const passed = Math.floor(after/MILESTONE_STEP) - Math.floor(before/MILESTONE_STEP);
   if(passed <= 0) return false;
@@ -1408,9 +1814,10 @@ const MAX_PIXEL_RATIO = 2;
 let ruleOpen = null, ruleDoc = null, ruleSizes = [], ruleToken = 0, ruleZoom = 1, ruleObserver = null, ruleWidth = 0, pdfLibPromise = null;
 
 function renderRightView(){
-  const rules = state.ui.rightView==='rules';
-  $('viewScores').hidden = rules;
-  $('viewRules').hidden = !rules;
+  const v = state.ui.rightView;
+  $('viewStandings').hidden = v !== 'standings';
+  $('viewScores').hidden = v !== 'scores';
+  $('viewRules').hidden = v !== 'rules';
   document.querySelectorAll('.vtab').forEach(b=>b.classList.toggle('active', b.dataset.view===state.ui.rightView));
 }
 
@@ -1559,12 +1966,15 @@ function exportData(){
   breakdown.push(['Total', ...pl.map(p=>sum(T.byPlayer[p.id]))]);
   const byExp = [['Expansion', ...pl.map(p=>p.name)]];
   T.expOrder.forEach(n=>byExp.push([n, ...pl.map(p=>T.byExp[n][p.id]||0)]));
-  const log = [['Turn','Player','Feature','Expansion','Points','Tile played from']];
+  const simple = simpleMode();
+  const log = [simple ? ['Player','Feature','Expansion','Points'] : ['Turn','Player','Feature','Expansion','Points','Tile played from']];
   const turns = turnNumbers();
   state.entries.forEach((e,i)=>{
     const p = playerById(e.playerId); if(!p) return;
-    log.push([turns[i], p.name, e.hidden ? (e.stay ? 'Extra tile' : 'No score') : catInfo(e.category).label, e.subtype||'', e.points, e.tile||'']);
+    const what = e.hidden ? (e.stay ? (e.tile ? 'Extra tile' : 'No score, same turn') : 'No score') : catInfo(e.category).label;
+    log.push(simple ? [p.name, what, e.subtype||'', e.points] : [turns[i], p.name, what, e.subtype||'', e.points, e.tile||'']);
   });
+  if(simple) return {breakdown, byExp, log, tiles:null};
   const tp = tilesPlayed();
   const tiles = [['Tiles from','Played','Total'], ...tileSources().map(n=>[n, tp.by[n]||0, tilesInSource(n)])];
   const tt = tileTotals();
@@ -1593,18 +2003,20 @@ function downloadResults(){
       XLSX.utils.book_append_sheet(wb, ws2, 'By Expansion');
     }
     const ws3 = XLSX.utils.aoa_to_sheet(d.log);
-    ws3['!cols'] = [{wch:5},{wch:16},{wch:12},{wch:38},{wch:8},{wch:38}];
-    XLSX.utils.book_append_sheet(wb, ws3, 'Turn Log');
-    const ws4 = XLSX.utils.aoa_to_sheet(d.tiles);
-    ws4['!cols'] = [{wch:38},{wch:8},{wch:8}];
-    XLSX.utils.book_append_sheet(wb, ws4, 'Tiles');
+    ws3['!cols'] = d.tiles ? [{wch:5},{wch:16},{wch:12},{wch:38},{wch:8},{wch:38}] : [{wch:16},{wch:12},{wch:38},{wch:8}];
+    XLSX.utils.book_append_sheet(wb, ws3, d.tiles ? 'Turn Log' : 'Score Log');
+    if(d.tiles){
+      const ws4 = XLSX.utils.aoa_to_sheet(d.tiles);
+      ws4['!cols'] = [{wch:38},{wch:8},{wch:8}];
+      XLSX.utils.book_append_sheet(wb, ws4, 'Tiles');
+    }
     XLSX.writeFile(wb, name + '.xlsx');
   } else {
     // Fallback if the spreadsheet library could not load (e.g. offline): CSV opens in Excel / Sheets
     const csv = a => a.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
     let out = csv(d.breakdown);
     if(d.byExp.length > 1) out += '\r\n\r\n' + csv(d.byExp);
-    out += '\r\n\r\n' + csv(d.log) + '\r\n\r\n' + csv(d.tiles);
+    out += '\r\n\r\n' + csv(d.log) + (d.tiles ? '\r\n\r\n' + csv(d.tiles) : '');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['\ufeff'+out], {type:'text/csv;charset=utf-8'}));
     a.download = name + '.csv';
@@ -1655,17 +2067,56 @@ function bind(){
     if(none){ const items = EXPANSION_GROUPS[+none.dataset.gnone].items; state.enabled = state.enabled.filter(x=>!items.includes(x)); save(); render(); }
   });
 
-  $('startBtn').onclick = ()=>{ showTab('game'); logRiverStart(); };
+  $('startBtn').onclick = ()=>{
+    // The game clock starts with the first Start game; the music switches sets after 30 minutes on it
+    if(!state.ui.gameStart && state.players.length){
+      state.ui.gameStart = Date.now(); state.ui.clockPausedAt = null; state.ui.clockPausedMs = 0;
+      resetTurnClock();
+      // With the River, the first stretch of the game is timed as the river
+      if(!simpleMode() && state.enabled.includes('River')){ state.ui.riverOn = true; state.ui.riverFrom = 0; }
+      save();
+    }
+    renderClock();
+    showTab('game'); logRiverStart();
+    if(musicEl.paused) startMusic();
+  };
+  document.querySelectorAll('input[name=mode]').forEach(r=>{
+    r.onchange = ()=>{
+      state.ui.mode = r.value;
+      state.ui.timedPlayer = null; // turn timing restarts cleanly when Extended mode is back
+      if(r.value === 'simple') state.ui.tileFrom = null;
+      save(); render();
+    };
+  });
+  $('musicOn').onchange = e=>{
+    state.ui.music = e.target.checked; state.ui.musicPaused = false; save();
+    if(state.ui.music) startMusic(); else stopMusic();
+    renderMusic();
+  };
+  $('musicVol').oninput = e=>{
+    state.ui.musicVolume = +e.target.value; save();
+    musicEl.volume = musicVolume();
+  };
+  $('musicBtn').onclick = ()=>{
+    state.ui.musicPaused = !state.ui.musicPaused; save();
+    if(state.ui.musicPaused) stopMusic(); else startMusic();
+    renderMusic();
+  };
   $('clearScoresBtn').onclick = ()=>{
     if(!state.entries.length) return;
     if(!confirm('Clear all logged scores? Players and expansions are kept.')) return;
     state.entries = []; lastAddedId = null; state.ui.finalScoring = false;
     state.wonderNotes = {first:[], second:[]}; // the wonder notes can come again after a fresh start
+    state.ui.gameStart = null; state.ui.clockPausedAt = null; state.ui.clockPausedMs = 0; state.ui.clockStoppedByFinal = false; resetTurnClock();
+    resetMusic(); // a new game starts its clock and music afresh
     save(); render();
   };
   $('resetBtn').onclick = ()=>{
     if(!confirm('Reset everything? This clears players, expansions and all scores.')) return;
-    state = freshState(); chosenColor = null; lastAddedId = null; bonus = 0; save(); render();
+    // Music, sound and scoring mode settings are kept; only the game is reset
+    const keep = {music:state.ui.music, musicVolume:state.ui.musicVolume, sound:state.ui.sound, mode:state.ui.mode};
+    state = freshState(); Object.assign(state.ui, keep);
+    chosenColor = null; lastAddedId = null; bonus = 0; resetMusic(); save(); render();
   };
 
   // game
@@ -1681,8 +2132,26 @@ function bind(){
   $('finalBtn').onclick = ()=>{
     state.ui.finalScoring = !state.ui.finalScoring;
     bonus = 0;
-    sanitize(); save(); renderGame();
-    if(state.ui.finalScoring) playSound(EVENT_SOUNDS.finalScoring);
+    const u = state.ui;
+    if(u.finalScoring){
+      // Final scoring stops the game and turn clocks (unless they were already paused)
+      if(u.gameStart && !u.clockPausedAt){ u.clockPausedAt = Date.now(); u.clockStoppedByFinal = true; }
+    } else if(u.clockStoppedByFinal && u.clockPausedAt){
+      // Back to the game: the clocks carry on, leaving out the time spent in final scoring
+      u.clockPausedMs = (u.clockPausedMs || 0) + (Date.now() - u.clockPausedAt);
+      u.clockPausedAt = null; u.clockStoppedByFinal = false;
+    }
+    sanitize(); save(); renderGame(); renderClock();
+    if(u.finalScoring){
+      // The music stops at once, the final scoring sound plays, then the Endgame songs begin
+      musicEl.pause(); musicEl.removeAttribute('src'); musicHold = true;
+      playSounds([EVENT_SOUNDS.finalScoring]).then(ends=>{
+        setTimeout(()=>{ musicHold = false; if(state.ui.finalScoring && musicShouldPlay()) playNextSong(); }, ends[EVENT_SOUNDS.finalScoring] || 0);
+      });
+    } else {
+      musicHold = false;
+      if(musicShouldPlay()) playNextSong(); // back to the game's music stage
+    }
   };
   $('turnNote').addEventListener('click', e=>{
     if(e.target.id==='setTurnBtn'){ state.ui.turnPlayerId = state.ui.playerId; save(); renderGame(); }
@@ -1789,6 +2258,17 @@ function bind(){
   keepScreenOn();
   document.addEventListener('visibilitychange', keepScreenOn);
   document.addEventListener('pointerdown', keepScreenOn);
+  document.addEventListener('visibilitychange', wakeAudio);
+  document.addEventListener('pointerdown', wakeAudio);
+  // Music: find the songs, and start once the browser allows sound (after a tap) if a game is on
+  renderMusic();
+  loadMusicLists();
+  // The game clock ticks every second
+  renderClock();
+  setInterval(renderClock, 1000);
+  $('clockBtn').onclick = toggleClock;
+  $('shareBtn').onclick = shareResults;
+  document.addEventListener('pointerdown', ()=>{ if(musicShouldPlay() && musicEl.paused) startMusic(); });
   persistStorage();
 
   // Installable + offline: cache the app, and ask the browser not to evict saved games

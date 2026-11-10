@@ -1,0 +1,3 @@
+# I. Dark – one random song plays at the very start
+
+Put .mp3, .m4a, .ogg or .wav files in this folder. This note is ignored by the app.
