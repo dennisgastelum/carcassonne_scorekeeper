@@ -799,7 +799,7 @@ const EXPANSION_SOUNDS = {
   'Spell Circles':'temple', 'Gifts':'tribute', 'Halflings':'metal-light', 'Japanese Buildings':'wonder1',
   'Barber-Surgeons':'bell2', 'Spiel 25':'market1', 'Spiel 26':'market1', 'Labyrinth':'relicpickup'
 };
-const EVENT_SOUNDS = {riverSetup:'dock4', finalScoring:'victory', wonder:'wonder2', sourceDone:'viking', extraTile:'horsesound', undo:'farmdepleted', noScore:'storagepit'};
+const EVENT_SOUNDS = {riverSetup:'dock4', finalScoring:'victory', wonderFirst:'govcentre', wonder:'wonder2', sourceDone:'viking', extraTile:'horsesound', undo:'farmdepleted', noScore:'storagepit'};
 // Sheep & Shepherds: sheep for points, wolves for 0. Any other 0 plays the no-score sound.
 function scoreSound(cat, expansion, pts){
   if(cat === 'expansion' && expansion === '9. Sheep & Shepherds') return pts > 0 ? 'sheep' : 'wolf';
@@ -1408,7 +1408,6 @@ function resultsText(){
     if(b.length) lines.push(`   Most points for ${b.map(x=>x.label).join(', ')}`);
   });
   if(state.ui.gameStart){ lines.push(''); lines.push(`Game time: ${fmtTime(Math.floor(gameElapsedMs() / 30000) * 30000)}`); }
-  if(state.enabled.length) lines.push(`Expansions: ${orderedEnabled().join(', ')}`);
   return lines.join('\n');
 }
 // Copies the results as text; falls back to the tablet's share sheet, then to an old-style copy
@@ -1569,7 +1568,7 @@ function logScore(pts, advance){
   const sounds = [scoreSound(entry.category, entry.subtype, pts)];
   const milestone = announceMilestone(p, totalBefore);
   if(milestone) sounds.push(milestone.sound);
-  if(checkWonderNotes(p)) sounds.push(EVENT_SOUNDS.wonder);
+  sounds.push(...checkWonderNotes(p));
   // Last of all, the viking sound when this was the final tile of the base game or an expansion
   if(countsTile && sourceFinished(entry.tile)) sounds.push(EVENT_SOUNDS.sourceDone);
   playSounds(sounds).then(ends=>{
@@ -1688,19 +1687,20 @@ function announceMilestone(p, before){
 const WONDER_EXPANSION = 'Wonders of Humanity';
 const WONDER_FIRST_AT = 10, WONDER_FIRST_STEP = 5, WONDER_SECOND_AT = 50;
 function checkWonderNotes(p){
-  if(!state.enabled.includes(WONDER_EXPANSION)) return false;
+  // Returns the sounds to play: govcentre for a first wonder (10, 15 ...), wonder2 for a second (50)
+  if(!state.enabled.includes(WONDER_EXPANSION)) return [];
   const wn = state.wonderNotes, total = playerTotal(p.id);
   const told = wn.first.length; // players already sent to choose a first wonder
-  let shown = false;
+  const shown = [];
   if(!wn.first.includes(p.id) && told < state.players.length && total >= WONDER_FIRST_AT + WONDER_FIRST_STEP*told){
     wn.first.push(p.id);
     queueWonderNote(p, 'must choose a wonder and build it in the next turn.');
-    shown = true;
+    shown.push(EVENT_SOUNDS.wonderFirst);
   }
   if(!wn.second.includes(p.id) && total >= WONDER_SECOND_AT){
     wn.second.push(p.id);
     queueWonderNote(p, 'must choose a second wonder and build it in the next turn, if playing with 2 wonders.');
-    shown = true;
+    shown.push(EVENT_SOUNDS.wonder);
   }
   save();
   return shown;

@@ -1,7 +1,7 @@
 // Offline support. Files are served from the cache straight away and refreshed
 // in the background, so a new upload reaches players on their next app launch.
 // Change CACHE only if you rename or remove files in the ASSETS list.
-const CACHE = 'carcassonne-v27';
+const CACHE = 'carcassonne-v29';
 const ASSETS = [
   './',
   './index.html',
