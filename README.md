@@ -66,6 +66,15 @@ The app can play your own music during a game, in four stages, each a folder in 
 
 Songs within a stage play in random order, each once before any repeats. A song is never cut off when a stage changes: the song playing at that moment finishes, and the next one comes from the new stage. An empty stage is skipped.
 
+### Now Playing banner
+
+Under the clock in Scores, a banner shows the song: **▶ Now Playing: [age icon] Feudal – Song title from [game icon]**.
+
+- Song titles and their game come from the `SONG_NAMES` list in `index.html` (file name → game and title). A file that is not in the list still shows, with a tidied version of its file name.
+- Game icons: `icons/games/aoe2.png`, `icons/games/civ6.png` and `icons/games/anno1404.png`. If one is missing, the banner shows AoE II, Civ VI or Anno 1404 in a small circle instead.
+- Age icons: the shields in `icons/ages/` (`dark.png`, `feudal.png`, `castle.png`, `imperial.png`). Endgame uses the Imperial shield.
+- A song uploaded twice, once with spaces and once with underscores in its name, is played as one song.
+
 1. Upload songs into the folders: on the upload page, drag in a `music` folder that contains `dark`, `feudal`, `castle`, `imperial` and `endgame` with the songs inside.
 2. Use MP3 files under 25 MB each. Adding or removing a song is enough; the app finds the files itself.
 3. In the app, open **Setup** and tick **Play music during the game**. The **Music** button beside Sound pauses and resumes it during play.

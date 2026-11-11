@@ -1,7 +1,7 @@
 // Offline support. Files are served from the cache straight away and refreshed
 // in the background, so a new upload reaches players on their next app launch.
 // Change CACHE only if you rename or remove files in the ASSETS list.
-const CACHE = 'carcassonne-v29';
+const CACHE = 'carcassonne-v32';
 const ASSETS = [
   './',
   './index.html',
@@ -19,6 +19,13 @@ const ASSETS = [
   './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png',
   './icons/final-scoring.png',
+  './icons/games/aoe2.png',
+  './icons/games/civ6.png',
+  './icons/games/anno1404.png',
+  './icons/ages/dark.png',
+  './icons/ages/feudal.png',
+  './icons/ages/castle.png',
+  './icons/ages/imperial.png',
   './sounds/bell2.mp3',
   './sounds/boat.mp3',
   './sounds/castleselect.mp3',

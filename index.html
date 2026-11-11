@@ -232,6 +232,18 @@
   .clock-label{font-size:.75rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);}
   .clock-time{flex:1 1 auto; font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; font-size:clamp(1.6rem, 4.5vh, 2.4rem); font-variant-numeric:tabular-nums; line-height:1;}
   .clock.paused .clock-time{opacity:.45;}
+  .now-playing{flex:0 0 auto; display:flex; align-items:center; flex-wrap:wrap; gap:4px 7px; margin:8px 18px 0 14px; padding:8px 12px; border-radius:10px; background:rgba(59,47,36,.07); font-size:.9rem; line-height:1.3; color:var(--ink);}
+  .now-playing.paused{opacity:.6;}
+  .np-play{font-size:.8rem; width:1rem; text-align:center;}
+  .np-label{font-size:.72rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);}
+  .np-from{color:var(--ink-soft); font-style:italic;}
+  .np-dash{color:var(--ink-soft);}
+  .np-age-name{font-weight:600;}
+  .np-title{font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; min-width:0;}
+  .np-icon{display:inline-flex; align-items:center; justify-content:center; height:22px;}
+  .np-icon img{height:22px; width:auto; max-width:60px; object-fit:contain;}
+  .np-game, .np-game img{height:32px;} .np-game img{max-width:90px;}
+  .np-fallback{display:inline-flex; align-items:center; justify-content:center; min-width:22px; height:22px; padding:0 6px; border:1px solid var(--line); border-radius:999px; font-size:.68rem; font-weight:700; letter-spacing:.02em; color:var(--ink-soft); white-space:nowrap;}
   .clock.idle .clock-time{opacity:.35;}
   .vtab{padding:9px 12px; border:1.5px solid var(--ink); background:transparent; color:var(--ink); font-weight:600; font-size:.9rem; cursor:pointer;}
   .vtab.active{background:var(--ink); color:var(--parchment);}
@@ -491,6 +503,7 @@
             <button class="btn secondary small" id="clockBtn">Pause</button>
           </div>
         </div>
+        <div class="now-playing" id="nowPlaying" hidden aria-live="polite"></div>
       </section>
       <div id="viewScores">
       <section class="card log-card">
@@ -863,11 +876,11 @@ function playSound(name){ playSounds([name]); }
    to a folder is enough. music/playlist.json is a fallback:
    {"dark":["a.mp3"], "feudal":["b.mp3"], "castle":["c.mp3"], "imperial":["d.mp3"]} */
 const MUSIC_STAGES = [
-  {key:'dark',     label:'I. Dark',      opener:true},
-  {key:'feudal',   label:'II. Feudal',   from:0},
-  {key:'castle',   label:'III. Castle',  from:30},
-  {key:'imperial', label:'IV. Imperial', from:60},
-  {key:'endgame',  label:'Endgame',      endgame:true}
+  {key:'dark',     label:'I. Dark',      age:'Dark',     num:'I',   opener:true},
+  {key:'feudal',   label:'II. Feudal',   age:'Feudal',   num:'II',  from:0},
+  {key:'castle',   label:'III. Castle',  age:'Castle',   num:'III', from:30},
+  {key:'imperial', label:'IV. Imperial', age:'Imperial', num:'IV',  from:60},
+  {key:'endgame',  label:'Endgame',      age:'Endgame',  num:'★',   endgame:true}
 ];
 const MUSIC_TIMED = MUSIC_STAGES.filter(st=>!st.opener && !st.endgame);
 const MUSIC_STORE = 'carcassonne-music-stages';
@@ -886,6 +899,11 @@ function githubRepo(){
   const repo = location.pathname.split('/').filter(Boolean)[0];
   return m && repo ? {owner:m[1], repo} : null;
 }
+// The same song uploaded twice ("Pork parts - castle.mp3" and "Pork_parts_-_castle.mp3") is kept once
+function uniqueSongs(names){
+  const seen = new Set();
+  return names.filter(n=>{ const k = n.toLowerCase().replace(/[_\s]+/g,' '); if(seen.has(k)) return false; seen.add(k); return true; });
+}
 async function loadMusicLists(){
   const gh = githubRepo();
   let ok = false;
@@ -898,7 +916,7 @@ async function loadMusicLists(){
         if(res.status === 404) continue;          // folder not there yet
         if(!res.ok){ ok = false; break; }
         const items = await res.json();
-        lists[st.key] = items.filter(i=>i.type==='file' && /\.(mp3|m4a|ogg|wav)$/i.test(i.name)).map(i=>i.name).sort();
+        lists[st.key] = uniqueSongs(items.filter(i=>i.type==='file' && /\.(mp3|m4a|ogg|wav)$/i.test(i.name)).map(i=>i.name).sort());
       }catch(e){ ok = false; break; }
     }
     if(ok){ musicLists = lists; try{ localStorage.setItem(MUSIC_STORE, JSON.stringify(lists)); }catch(e){} }
@@ -906,7 +924,7 @@ async function loadMusicLists(){
   if(!ok && !songCount()){
     try{
       const res = await fetch('music/playlist.json', {cache:'no-store'});
-      if(res.ok){ const j = await res.json(); musicLists = Object.assign(emptyLists(), j); ok = true; }
+      if(res.ok){ const j = await res.json(); musicLists = Object.assign(emptyLists(), j); for(const k in musicLists) musicLists[k] = uniqueSongs(musicLists[k] || []); ok = true; }
     }catch(e){}
   }
   musicFound = ok || songCount() > 0;
@@ -995,6 +1013,151 @@ function fmtTime(ms){
 // Player totals are shown to the nearest 10 seconds
 const fmtTime10 = ms => fmtTime(Math.round(ms / 10000) * 10000);
 
+/* ---------- Song names for the Now Playing banner ----------
+   File name -> [game, title]. Games: aoe2 = Age of Empires II, civ6 = Civilization VI, anno = Anno 1404.
+   A file that is not listed here gets a tidied version of its file name and a guessed game. */
+const MUSIC_GAMES = {
+  aoe2: {name:'Age of Empires II', short:'AoE II',    icon:'icons/games/aoe2.png'},
+  civ6: {name:'Civilization VI',   short:'Civ VI',    icon:'icons/games/civ6.png'},
+  anno: {name:'Anno 1404',         short:'Anno 1404', icon:'icons/games/anno1404.png'}
+};
+const SONG_NAMES = {
+  // I. Dark
+  'Drizzle - dark.mp3':['aoe2','Drizzle'],
+  'MainMenu.mp3':['civ6','Sogno di Volare (Main Menu)'],
+  'T Station - dark.mp3':['aoe2','T Station'],
+  // II. Feudal
+  '08 - Moneycounters.mp3':['anno','Moneycounters'],
+  '13 - Oriental Mysteries.mp3':['anno','Oriental Mysteries'],
+  '15 - Sands of Dreams.mp3':['anno','Sands of Dreams'],
+  '16 - Sands of Dreams (variation).mp3':['anno','Sands of Dreams (Variation)'],
+  'America_Medieval.mp3':['civ6','America Theme (Medieval)'],
+  'Ancient_Greece_Mel1_Lyre.mp3':['civ6','Greece: Melody I (Ancient, Lyre)'],
+  'Brazil_Ancient_Tico-Tico_Guitar.mp3':['civ6','Brazil: Tico-Tico (Ancient, Guitar)'],
+  'Brazil_Medieval.mp3':['civ6','Brazil Theme (Medieval)'],
+  'China_Ancient_Rain-01.mp3':['civ6','China: Rain (Ancient)'],
+  'EgyptTheme_Ancient_Oud.mp3':['civ6','Egypt Theme (Ancient, Oud)'],
+  'Egypt_Medieval.mp3':['civ6','Egypt Theme (Medieval)'],
+  'England_Ancient_GreenBushes_Dulcimer.mp3':['civ6','England: Green Bushes (Ancient, Dulcimer)'],
+  'England_Ancient_GreenBushes_Vielle-Dulcimers.mp3':['civ6','England: Green Bushes (Ancient, Vielle & Dulcimers)'],
+  'England_Ancient_Grenadier_Vielle-Dulcimers.mp3':['civ6','England: Grenadier (Ancient, Vielle & Dulcimers)'],
+  'England_Medieval.mp3':['civ6','England Theme (Medieval)'],
+  'FranceAncient2.mp3':['civ6','France: Ancient II'],
+  'FranceAncient3.mp3':['civ6','France: Ancient III'],
+  'FranceAncient4.mp3':['civ6','France: Ancient IV'],
+  'FranceAncient5.mp3':['civ6','France: Ancient V'],
+  'FranceAncient6.mp3':['civ6','France: Ancient VI'],
+  'FranceAncientTheme.mp3':['civ6','France Theme (Ancient)'],
+  'Germany_Ancient_Schwesterlein_Lutes_Vielle.mp3':['civ6','Germany: Schwesterlein (Ancient, Lutes & Vielle)'],
+  'Germany_Ancient_SpinnSpinn_Lutes-Vielle.mp3':['civ6','Germany: Spinn, Spinn (Ancient, Lutes & Vielle)'],
+  'Germany_Ancient_Theme_Lutes.mp3':['civ6','Germany Theme (Ancient, Lutes)'],
+  'Germany_Medieval.mp3':['civ6','Germany Theme (Medieval)'],
+  'GreeceTheme_Medieval.mp3':['civ6','Greece Theme (Medieval)'],
+  'India_Ancient_Bansuri_Improv1.mp3':['civ6','India: Bansuri Improvisation I (Ancient)'],
+  'India_Ancient_Bansuri_Improv2.mp3':['civ6','India: Bansuri Improvisation II (Ancient)'],
+  'India_Ancient_Bansuri_Improv3.mp3':['civ6','India: Bansuri Improvisation III (Ancient)'],
+  'India_Ancient_Bansuri_Improv4.mp3':['civ6','India: Bansuri Improvisation IV (Ancient)'],
+  'India_Ancient_Bansuri_Improv5.mp3':['civ6','India: Bansuri Improvisation V (Ancient)'],
+  'India_Medieval.mp3':['civ6','India Theme (Medieval)'],
+  'Japan_Ancient_ShakuImprov_1.mp3':['civ6','Japan: Shakuhachi Improvisation I (Ancient)'],
+  'Japan_Ancient_ShakuImprov_2.mp3':['civ6','Japan: Shakuhachi Improvisation II (Ancient)'],
+  'Japan_Ancient_ShakuImprov_3.mp3':['civ6','Japan: Shakuhachi Improvisation III (Ancient)'],
+  'Japan_Medieval_1.mp3':['civ6','Japan Theme (Medieval)'],
+  'Kongo_Ancient_MamaMunuDile_Mix1-Early.mp3':['civ6','Kongo: Mama Munu Dile (Ancient)'],
+  'Kongo_Ancient_Misc.mp3':['civ6','Kongo: Ancient Miscellany'],
+  'Kongo_Ancient_PercOnly1.mp3':['civ6','Kongo: Percussion I (Ancient)'],
+  'Kongo_Ancient_PercOnly2.mp3':['civ6','Kongo: Percussion II (Ancient)'],
+  'Kongo_Ancient_Salampasu.mp3':['civ6','Kongo: Salampasu (Ancient)'],
+  'Kongo_Medieval.mp3':['civ6','Kongo Theme (Medieval)'],
+  'Machina - feudal.mp3':['aoe2','Machina del Diablo'],
+  'Ride Lawrence - feudal.mp3':['aoe2','Ride Lawrence'],
+  'RomeAncientAulos1.mp3':['civ6','Rome: Aulos I (Ancient)'],
+  'RomeAncientAulos2.mp3':['civ6','Rome: Aulos II (Ancient)'],
+  'RomeAncientBrass.mp3':['civ6','Rome: Brass (Ancient)'],
+  'RomeAncientConches_New.mp3':['civ6','Rome: Conches (Ancient)'],
+  'RomeAncientThemeNew.mp3':['civ6','Rome Theme (Ancient)'],
+  'RomeAncientVoiceFlute.mp3':['civ6','Rome: Voice & Flute I (Ancient)'],
+  'RomeAncientVoiceFlute2.mp3':['civ6','Rome: Voice & Flute II (Ancient)'],
+  'Scythia_Medieval_1.mp3':['civ6','Scythia Theme (Medieval)'],
+  'Shamburger_-_feudal.mp3':['aoe2','Shamburger'],
+  'Spain_Improv_Ancient_1.mp3':['civ6','Spain: Improvisation I (Ancient)'],
+  'Spain_Improv_Ancient_2.mp3':['civ6','Spain: Improvisation II (Ancient)'],
+  'Spain_Improv_Ancient_3.mp3':['civ6','Spain: Improvisation III (Ancient)'],
+  'Spain_Theme_Ancient.mp3':['civ6','Spain Theme (Ancient)'],
+  'SumeriaTheme_Ancient_DrumOnly.mp3':['civ6','Sumeria Theme (Ancient, Drums)'],
+  'SumeriaTheme_Ancient_NeyOnly.mp3':['civ6','Sumeria Theme (Ancient, Ney)'],
+  'Sumeria_Ancient_GameBegin.mp3':['civ6','Sumeria: Game Start (Ancient)'],
+  // III. Castle
+  '03 - Bow to the King.mp3':['anno','Bow to the King'],
+  '06 - Grandiose Magnificence.mp3':['anno','Grandiose Magnificence'],
+  '07 - Infestation.mp3':['anno','Infestation'],
+  '09 - Moneycounters (variation).mp3':['anno','Moneycounters (Variation)'],
+  '10 - Monumental Cathedral.mp3':['anno','Monumental Cathedral'],
+  '12 - Ora Et Labora.mp3':['anno','Ora et Labora'],
+  '14 - Our Honoured Guests.mp3':['anno','Our Honoured Guests'],
+  '17 - The Black Death.mp3':['anno','The Black Death'],
+  '20 - When Cultures Meet.mp3':['anno','When Cultures Meet'],
+  'China_Industrial.mp3':['civ6','China Theme (Industrial)'],
+  'Egypt_Industrial_1.mp3':['civ6','Egypt Theme (Industrial)'],
+  'England_Theme_Industrial.mp3':['civ6','England Theme (Industrial)'],
+  'Germany_Theme_Industrial.mp3':['civ6','Germany Theme (Industrial)'],
+  'India_Theme_Industrial.mp3':['civ6','India Theme (Industrial)'],
+  'Japan_Industrial_1.mp3':['civ6','Japan Theme (Industrial)'],
+  'Kongo_Theme_Industrial.mp3':['civ6','Kongo Theme (Industrial)'],
+  'Pork parts - castle.mp3':['aoe2','Pork Parts'],
+  'Pork_parts_-_castle.mp3':['aoe2','Pork Parts'],
+  'Rome_Theme_Modern.mp3':['civ6','Rome Theme (Modern)'],
+  'ScythiaTheme_Ancient.mp3':['civ6','Scythia Theme (Ancient)'],
+  'Scythia_Industrial_2.mp3':['civ6','Scythia Theme (Industrial II)'],
+  'Smells like crickets - castle.mp3':['aoe2','Smells Like Crickets'],
+  'Smells_like_crickets_-_castle.mp3':['aoe2','Smells Like Crickets'],
+  'Spain_Medieval.mp3':['civ6','Spain Theme (Medieval)'],
+  'Sumeria_Medieval.mp3':['civ6','Sumeria Theme (Medieval)'],
+  'Sumeria_Theme_Industrial.mp3':['civ6','Sumeria Theme (Industrial)'],
+  // IV. Imperial
+  '02 - Behold the Sultan.mp3':['anno','Behold the Sultan'],
+  '04 - Calm before the Storm.mp3':['anno','Calm Before the Storm'],
+  '05 - Golden Shores.mp3':['anno','Golden Shores'],
+  '11 - Monumental Mosque.mp3':['anno','Monumental Mosque'],
+  '18 - The Outpost.mp3':['anno','The Outpost'],
+  '19 - Thousand Feet March.mp3':['anno','Thousand Feet March'],
+  '21 - When Cultures Meet (variation).mp3':['anno','When Cultures Meet (Variation)'],
+  'Arabia_Theme_Modern.mp3':['civ6','Arabia Theme (Modern)'],
+  'AztecIndustrialTheme.mp3':['civ6','Aztec Theme (Industrial)'],
+  'Aztec_Theme_Modern.mp3':['civ6','Aztec Theme (Modern)'],
+  'BritOutro.mp3':['aoe2','Britons Outro'],
+  'China_Theme_Modern.mp3':['civ6','China Theme (Modern)'],
+  'Egypt_Theme_Modern.mp3':['civ6','Egypt Theme (Modern)'],
+  'England_Theme_Modern.mp3':['civ6','England Theme (Modern)'],
+  'FranceMedievalTheme.mp3':['civ6','France Theme (Medieval)'],
+  'Germany_Theme_Modern.mp3':['civ6','Germany Theme (Modern)'],
+  'I will beat - imperial.mp3':['aoe2','I Will Beat on Your Behind'],
+  'I_will_beat_-_imperial.mp3':['aoe2','I Will Beat on Your Behind'],
+  'India_Theme_Modern.mp3':['civ6','India Theme (Modern)'],
+  'Japan_Modern_Mockup.mp3':['civ6','Japan Theme (Modern)'],
+  'Kongo_Theme_Modern.mp3':['civ6','Kongo Theme (Modern)'],
+  'Rome_Theme_Industrial.mp3':['civ6','Rome Theme (Industrial)'],
+  'Scythia_Theme_Modern.mp3':['civ6','Scythia Theme (Modern)'],
+  'Spain_Modern.mp3':['civ6','Spain Theme (Modern)'],
+  'Sumeria_Theme_Modern.mp3':['civ6','Sumeria Theme (Modern)'],
+  // Endgame
+  'Ao2intro.mp3':['aoe2','Main Theme (Intro)'],
+  'AoEwon.mp3':['aoe2','Victory'],
+  'Aoe2lost.mp3':['aoe2','Defeat'],
+  'Latemiddleages.mp3':['aoe2','Late Middle Ages']
+};
+// For a file not in the list: "Some_File_Name - stage.mp3" -> "Some File Name"
+function guessSong(file){
+  let t = file.replace(/\.[a-z0-9]+$/i,'').replace(/[_\s]+-[_\s]+(dark|feudal|castle|imperial|endgame)$/i,'');
+  const anno = /^\d{2} - /.test(t);
+  t = t.replace(/^\d{2} - /,'').replace(/[_-]+/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/\s+/g,' ').trim();
+  const era = /\b(Ancient|Medieval|Industrial|Modern)\b/;
+  const game = anno ? 'anno' : era.test(t) ? 'civ6' : 'aoe2';
+  if(game === 'civ6'){ const e = t.match(era)[1]; t = `${t.replace(era,'').replace(/\s+/g,' ').trim()} (${e})`; }
+  return [game, t.replace(/\b\w/g, c=>c.toUpperCase())];
+}
+const songInfo = file => SONG_NAMES[file] || guessSong(file);
+
 // The latest stage whose start time has passed and that has songs; if none has, the first stage with songs
 function musicStageNow(){
   const mins = minutesPlayed();
@@ -1063,7 +1226,7 @@ function duckMusic(ms){
   clearTimeout(duckTimer);
   duckTimer = setTimeout(()=>{ musicEl.volume = musicVolume(); }, ms);
 }
-function songTitle(path){ return decodeURIComponent(path.split('/').pop()).replace(/\.[a-z0-9]+$/i,'').replace(/[_-]+/g,' '); }
+function songTitle(path){ return songInfo(path.split('/').pop())[1]; }
 const stageOf = path => MUSIC_STAGES.find(st=> path && path.startsWith(`music/${st.key}/`));
 function renderMusic(){
   $('musicOn').checked = state.ui.music === true;
@@ -1081,11 +1244,33 @@ function renderMusic(){
     info += ` Now playing: ${songTitle(lastSong)}${st ? ' (' + st.label + ')' : ''}.`;
   }
   $('musicInfo').textContent = info;
+  renderNowPlaying();
   const btn = $('musicBtn');
   btn.hidden = !(state.ui.music === true && songCount() > 0);
   btn.textContent = state.ui.musicPaused ? 'Music off' : 'Music on';
   btn.setAttribute('aria-pressed', state.ui.musicPaused ? 'false' : 'true');
 }
+// Now Playing banner under the clock in Scores: ▶ Now Playing: [age] Feudal – Song from [game]
+// Endgame uses the Imperial shield
+function renderNowPlaying(){
+  const el = $('nowPlaying');
+  const on = state.ui.music === true && !!lastSong && songCount() > 0;
+  el.hidden = !on;
+  if(!on) return;
+  const st = stageOf(lastSong), [g, title] = songInfo(lastSong.split('/').pop()), game = MUSIC_GAMES[g] || MUSIC_GAMES.aoe2;
+  const playing = !musicEl.paused && !state.ui.musicPaused;
+  const key = `${lastSong}|${playing}`;
+  if(el.dataset.key === key) return;
+  el.dataset.key = key;
+  const pic = (src, fallback, cls, alt) => `<span class="np-icon ${cls}"><img src="${src}" alt="${esc(alt)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'np-fallback',textContent:${esc(JSON.stringify(fallback))}}))"></span>`;
+  el.classList.toggle('paused', !playing);
+  el.innerHTML = `<span class="np-play" aria-hidden="true">${playing ? '▶' : '❚❚'}</span>`
+    + `<span class="np-label">${playing ? 'Now Playing' : 'Paused'}:</span>`
+    + (st ? `${pic(`icons/ages/${st.endgame ? 'imperial' : st.key}.png`, st.num, 'np-age', st.age)}<span class="np-age-name">${esc(st.age)}</span><span class="np-dash">–</span>` : '')
+    + `<span class="np-title" title="${esc(game.name)}">${esc(title)}</span>`
+    + `<span class="np-from">from</span>${pic(game.icon, game.short, 'np-game', game.name)}`;
+}
+musicEl.addEventListener('pause', renderNowPlaying);
 // Loads every sound after the first tap, so the first play of each is not delayed
 function preloadSounds(){
   if(state.ui.sound === false || !audio()) return;
