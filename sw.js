@@ -1,7 +1,7 @@
 // Offline support. Files are served from the cache straight away and refreshed
 // in the background, so a new upload reaches players on their next app launch.
 // Change CACHE only if you rename or remove files in the ASSETS list.
-const CACHE = 'carcassonne-v32';
+const CACHE = 'carcassonne-v38';
 const ASSETS = [
   './',
   './index.html',
@@ -179,9 +179,10 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-  // Each file is saved on its own, so one missing file cannot stop the update
+  // Each file is saved on its own, so one missing file cannot stop the update.
+  // cache:'reload' fetches from the server, not the browser's short-term copy, so an update is never saved as the old file
   e.waitUntil(caches.open(CACHE)
-    .then(c => Promise.all(ASSETS.map(a => c.add(a).catch(() => console.warn('Not saved offline:', a)))))
+    .then(c => Promise.all(ASSETS.map(a => c.add(new Request(a, {cache: 'reload'})).catch(() => console.warn('Not saved offline:', a)))))
     .then(() => self.skipWaiting()));
 });
 

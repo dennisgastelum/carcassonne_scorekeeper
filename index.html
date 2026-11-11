@@ -238,6 +238,7 @@
   .np-label{font-size:.72rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);}
   .np-from{color:var(--ink-soft); font-style:italic;}
   .np-dash{color:var(--ink-soft);}
+  .app-version{margin:6px 0 0; text-align:right; font-size:.7rem; color:var(--ink-soft); opacity:.7;}
   .np-age-name{font-weight:600;}
   .np-title{font-family:'Libre Caslon Text',Georgia,serif; font-weight:700; min-width:0;}
   .np-icon{display:inline-flex; align-items:center; justify-content:center; height:22px;}
@@ -257,6 +258,9 @@
   .rule-bar{flex:0 0 auto; display:flex; flex-wrap:wrap; align-items:center; gap:8px;}
   .rule-bar .btn{min-height:38px;}
   .rule-item.missing{border-style:dashed; color:var(--ink-soft);}
+  .rule-row{display:flex; gap:6px;}
+  .rule-row .rule-item{flex:1 1 auto; min-width:0;}
+  .rule-side{flex:0 0 auto; min-height:46px; padding:0 14px; background:transparent; border:1.5px solid var(--line); color:var(--ink-soft); font:inherit; font-size:.8rem; font-weight:600; cursor:pointer;}
   .rule-tag{margin-left:auto; font-size:.75rem; font-weight:500; color:var(--ink-soft); white-space:nowrap;}
   .rule-status-row{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
   .rule-status-row .rule-msg{margin:0; flex:1 1 auto; min-width:0;}
@@ -435,6 +439,7 @@
         <button class="btn secondary small" id="resetBtn">Reset everything</button>
         <button class="btn" id="startBtn">Start game →</button>
       </div>
+      <p class="app-version">Version 38</p>
     </div>
   </div>
 
@@ -528,6 +533,7 @@
             <button class="btn small" id="rulePickBtn">Add rulebook PDFs</button>
           </div>
           <input type="file" id="rulePick" accept="application/pdf,.pdf" multiple hidden>
+          <input type="file" id="ruleOne" accept="application/pdf,.pdf" hidden>
           <div class="rule-status-row">
             <p class="rule-msg" id="ruleStatus" hidden></p>
             <button class="text-btn" id="ruleClearBtn">Remove all</button>
@@ -715,6 +721,8 @@ const tileSummary = () => {
 };
 const expIcon = name => EXPANSION_ICONS[name] ? `<img class="exp-icon" src="icons/expansions/${EXPANSION_ICONS[name]}.png" alt="">` : '';
 const ALL_EXPANSIONS = EXPANSION_GROUPS.flatMap(g=>g.items);
+// The name shown on screen: the internal name without its number ("1. Inns & Cathedrals" -> "Inns & Cathedrals")
+const expName = n => String(n||'').replace(/^\d+\s*[.\-]\s*/,'');
 const PLAYER_COLORS = ['#C0392B','#2E5B9E','#D4A017','#3E7A45','#4A4A4A','#B05A9E'];
 const MEEPLES = {'#C0392B':'red','#2E5B9E':'blue','#D4A017':'yellow','#3E7A45':'green','#4A4A4A':'black','#B05A9E':'pink'};
 const meeple = c => `<img class="meeple" src="icons/meeples/${MEEPLES[c]}.png" alt="${MEEPLES[c]} meeple">`;
@@ -1319,7 +1327,7 @@ function renderSetup(){
       <div class="exp-group-head"><h3>${esc(g.label)}</h3>${g.items.length>1?`<span class="count">${n}/${g.items.length}</span>
         <button class="btn small secondary" data-gall="${gi}">All</button>
         <button class="btn small secondary" data-gnone="${gi}">None</button>`:''}</div>
-      <div class="exp-grid">${g.items.map((it,ii)=>`<label class="exp-item"><input type="checkbox" data-g="${gi}" data-i="${ii}"${state.enabled.includes(it)?' checked':''}>${expIcon(it)}<span class="exp-name">${esc(it)}</span>${tileLabel(it) && !simpleMode() ?`<span class="exp-tiles">${tileLabel(it)}</span>`:''}</label>`).join('')}</div>
+      <div class="exp-grid">${g.items.map((it,ii)=>`<label class="exp-item"><input type="checkbox" data-g="${gi}" data-i="${ii}"${state.enabled.includes(it)?' checked':''}>${expIcon(it)}<span class="exp-name">${esc(expName(it))}</span>${tileLabel(it) && !simpleMode() ?`<span class="exp-tiles">${tileLabel(it)}</span>`:''}</label>`).join('')}</div>
     </div>`;
   }).join('');
   $('expCount').textContent = `${state.enabled.length} selected`;
@@ -1403,11 +1411,11 @@ function renderExpRow(){
   closeDropdown();
   const active = state.ui.cat==='expansion';
   const groups = EXPANSION_GROUPS
-    .map(g=>({label:g.label, items:g.items.filter(i=>state.enabled.includes(i)).map(i=>({value:i, text:i, icon:expIcon(i)}))}))
+    .map(g=>({label:g.label, items:g.items.filter(i=>state.enabled.includes(i)).map(i=>({value:i, text:expName(i), icon:expIcon(i)}))}))
     .filter(g=>g.items.length);
   const none = !groups.length;
   const played = tilesPlayed().by;
-  const sources = tileSources().map(n=>({value:n, text:`${n} (${played[n]||0}/${tilesInSource(n)})`, icon:sourceIcon(n)}));
+  const sources = tileSources().map(n=>({value:n, text:`${expName(n)} (${played[n]||0}/${tilesInSource(n)})`, icon:sourceIcon(n)}));
   $('gTileRow').innerHTML = '<label class="row-label" for="tileFromSelect">Tile played from</label><div class="dd-wrap">' +
     dropdown('tileFromSelect', simpleMode() ? null : state.ui.tileFrom, [{items:sources}], simpleMode() ? 'Not needed in Simple mode' : 'Choose expansion', state.ui.finalScoring || simpleMode()) + '</div>';
   $('gTileRow').classList.toggle('off', simpleMode());
@@ -1495,12 +1503,12 @@ function logDescription(e, c){
   const source = simpleMode() ? null : (e.from || e.tile);
   const noScore = e.hidden ? (e.spring ? 'River spring' : e.stay ? (e.tile ? 'Extra tile' : 'No score, same turn') : 'No score') : null;
   const scoredHtml = noScore ? esc(noScore) : (e.subtype ? expIcon(e.subtype) : catIcon(c));
-  const scoredText = noScore || e.subtype || c.label;
+  const scoredText = noScore || expName(e.subtype) || c.label;
   const owner = source && e.turn && e.turn!==e.playerId ? playerById(e.turn) : null;
   if(!source) return {html:scoredHtml || esc(scoredText), title:scoredText};
   if(e.subtype===source) return {html:`${owner?meeple(owner.color):''}${scoredHtml}`, title:`${scoredText}${owner?` on ${owner.name}'s turn`:''}`};
-  const tileHtml = sourceIcon(source) || esc(source);
-  const title = `${scoredText}${owner?` on ${owner.name}'s turn`:''} / ${source}`;
+  const tileHtml = sourceIcon(source) || esc(expName(source));
+  const title = `${scoredText}${owner?` on ${owner.name}'s turn`:''} / ${expName(source)}`;
   return {html:`${scoredHtml}<span class="log-sep">/</span>${owner?meeple(owner.color):''}${tileHtml}`, title};
 }
 
@@ -1551,7 +1559,7 @@ function renderScore(){
     if(c.id==='expansion'){
       T.expOrder.forEach(name=>{
         const totalTiles = tilesInSource(name);
-        h += `<tr class="sub"><td>${expIcon(name)}${esc(name)}${totalTiles ? (simpleMode() ? ` (${totalTiles})` : ` (${played.by[name]||0}/${totalTiles})`) : ''}</td>` + pl.map(p=>`<td>${T.byExp[name][p.id]||0}</td>`).join('') + '</tr>';
+        h += `<tr class="sub"><td>${expIcon(name)}${esc(expName(name))}${totalTiles ? (simpleMode() ? ` (${totalTiles})` : ` (${played.by[name]||0}/${totalTiles})`) : ''}</td>` + pl.map(p=>`<td>${T.byExp[name][p.id]||0}</td>`).join('') + '</tr>';
       });
     }
   });
@@ -1569,7 +1577,7 @@ function computeBadges(){
   pl.forEach(p=>out[p.id] = []);
   const cats = [
     ...['road','city','monastery'].map(id=>{ const c = catInfo(id); return {label:c.plural, icon:catIcon(c), score:p=>T.byPlayer[p.id][id]}; }),
-    ...T.expOrder.map(name=>({label:name, icon:expIcon(name), score:p=>T.byExp[name][p.id] || 0})),
+    ...T.expOrder.map(name=>({label:expName(name), icon:expIcon(name), score:p=>T.byExp[name][p.id] || 0})),
     (c=>({label:c.plural, icon:catIcon(c), score:p=>T.byPlayer[p.id].field}))(catInfo('field'))
   ];
   cats.forEach(cat=>{
@@ -1737,7 +1745,7 @@ function logScore(pts, advance){
   state.entries.push(entry);
   lastAddedId = entry.id;
   bonus = 0;
-  let msg = `Logged +${pts} ${catInfo(entry.category).label}${isExp?' ('+entry.subtype+')':''} for ${p.name}${countsTile?'. Tile: '+entry.tile:''}`;
+  let msg = `Logged +${pts} ${catInfo(entry.category).label}${isExp?' ('+expName(entry.subtype)+')':''} for ${p.name}${countsTile?'. Tile: '+expName(entry.tile):''}`;
   if(advance){
     const next = nextPlayer();
     state.ui.playerId = next.id;
@@ -1939,6 +1947,59 @@ const BASE_RULEBOOK = BASE_RULEBOOK_NAME;
 const slugOf = s => s.toLowerCase().replace(/&/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const ALWAYS_RULEBOOKS = ['Expansion Combination', 'House Rules'];
 const allRuleNames = () => [BASE_RULEBOOK, ...EXPANSION_GROUPS.flatMap(g=>g.items), ...ALWAYS_RULEBOOKS];
+// File names (without .pdf) that Add rulebook PDFs recognises, besides the rulebook's own name.
+// One file can serve several rulebooks: 02_River_and_Abbot is saved for both River and Abbot.
+const RULE_FILE_NAMES = {
+  'Base Game':'01_Base_Game',
+  'River':'02_River_and_Abbot',
+  'Abbot':'02_River_and_Abbot',
+  '1 - The Flying Machines':'03_1_-_The_Flying_Machines',
+  '2 - The Messages':'04_2_-_The_Messengers',
+  '3 - The Ferries':'05_3_-_The_Ferries',
+  '4 - The Gold Mines':'06_4_-_The_Gold_Mines',
+  '5 - Magician & Witch':'07_5_-_Magician__Witch',
+  '6 - The Robbers':'08_6_-_The_Robbers',
+  '7 - The Crop Circles':'09_7_-_The_Crop_Circles',
+  '1. Inns & Cathedrals':'10_1._Inns__Cathedrals',
+  '2. Traders & Builders':'11_2._Traders__Builders',
+  '3. Dragon & Fairy':'12_3._Dragon__Fairy',
+  '4. Towers & Thieves':'13_4._Towers__Thieves',
+  '5. Messengers & Mayors':'14_5._Messengers__Mayors',
+  '6. Jousts & Crests':'15_6._Jousts__Crests',
+  '7. Siege & Defense':'16_7._Siege__Defense',
+  '8. Castles & Bridges':'17_8._Castles__Bridges',
+  '9. Sheep & Shepherds':'18_9._Sheep__Shepherds',
+  '10. Circus & Artists':'19_10._Circus__Artists',
+  '11. Ghosts, Castles and Cemeteries':'20._Ghosts',
+  'Hansa':'21_Hansa',
+  'Spring':'22_Spring',
+  'Summer':'23_Summer',
+  'Autumn':'24_Autumn',
+  'Winter':'25_Winter',
+  'Bets':'26_Bets',
+  'German Cathedrals':'27_German_Cathedrals',
+  'Drawbridges':'28_Drawbridges',
+  'Festival':'29_Festival',
+  'Fruit-Bearing Trees':'30_Fruit-Bearing_Trees',
+  'Markets of Leipzig':'31._Markets',
+  'Monasteries in Germany':'32._Monasteries',
+  'Phantom':'34._Phantom',
+  'Signposts':'35_Signposts',
+  'Tollkeepers':'36._Tollkeepers',
+  'Watchtowers':'37_Watchtowers',
+  'Wonders of Humanity':'38_Wonders_of_Humanity',
+  'Castles in Germany':'39_Castles_in_Germany',
+  'Snakes and Ladders':'40._Snakes_ladders',
+  'Spell Circles':'41._Spell_circles',
+  'Gifts':'42_Gifts',
+  'Halflings':'43_Halflings',
+  'Peasant Revolts':'44_Peasant_Revolts',
+  'Journey to Carcassonne':'45._Journey',
+  'Barber-Surgeons':'46_Barber-Surgeons',
+  'Labyrinth':'47._Labyrinth',
+  'Spiel 25':'49._Promo',
+  'Spiel 26':'49._Promo'
+};
 
 /* Rulebook PDFs are picked from the tablet's own files and kept in IndexedDB,
    so they stay on the device and work offline. Nothing is fetched from the server. */
@@ -1970,23 +2031,45 @@ async function refreshStored(){
   renderRuleList(); renderRuleStatus();
 }
 async function addRulebooks(files){
-  const known = new Map(allRuleNames().map(n=>[slugOf(n), n]));
+  // file-name slug -> slugs of the rulebooks it is saved under
+  const known = new Map();
+  const link = (fileName, rule) => { const k = slugOf(fileName); if(!known.has(k)) known.set(k, []); if(!known.get(k).includes(slugOf(rule))) known.get(k).push(slugOf(rule)); };
+  allRuleNames().forEach(n=>{ link(n, n); link(expName(n), n); });
+  Object.entries(RULE_FILE_NAMES).forEach(([rule, fileName])=>link(fileName, rule));
   const problems = [];
   for(const f of files){
-    const key = slugOf(f.name.replace(/\.pdf$/i,''));
-    if(!known.has(key)){ problems.push(f.name); continue; }
+    const keys = known.get(slugOf(f.name.replace(/\.pdf$/i,'')));
+    if(!keys){ problems.push(f.name); continue; }
     try{
-      await ruleDbRun('readwrite', s=>s.put(f, key));
-      ruleStored.add(key);
+      for(const key of keys){ await ruleDbRun('readwrite', s=>s.put(f, key)); ruleStored.add(key); }
     }catch(e){ problems.push(f.name + ' (could not be saved)'); }
   }
+  if(files.length > problems.length) persistStorage();
   renderRuleList(); renderRuleStatus(problems);
 }
+// One rulebook at a time: the picked file is saved under that rulebook, whatever the file is called
+let ruleTarget = null;
+function pickRulebookFor(name){ ruleTarget = name; $('ruleOne').click(); }
+async function isPdf(file){
+  try{ const head = new Uint8Array(await file.slice(0,1024).arrayBuffer()); return new TextDecoder('latin1').decode(head).includes('%PDF'); }
+  catch(e){ return false; }
+}
+async function addOneRulebook(name, file){
+  if(!(await isPdf(file))){ ruleNote(`${file.name} is not a PDF, so it was not added to ${expName(name)}.`); return; }
+  try{
+    await ruleDbRun('readwrite', s=>s.put(file, slugOf(name)));
+    ruleStored.add(slugOf(name));
+    persistStorage();
+    renderRuleList(); renderRuleStatus();
+    ruleNote(`Added ${expName(name)}.`);
+  }catch(e){ ruleNote(`${expName(name)} could not be saved on this tablet. It may be out of space.`); }
+}
+function ruleNote(text){ renderRuleStatus(); $('ruleStatus').textContent += ' ' + text; }
 function renderRuleStatus(problems){
   const names = allRuleNames();
   const have = names.filter(n=>ruleStored.has(slugOf(n))).length;
   const parts = [`${have} of ${names.length} rulebooks are on this tablet.`];
-  if(problems && problems.length) parts.push(`Not added, because the file name does not match a rulebook: ${problems.join(', ')}.`);
+  if(problems && problems.length) parts.push(`Not added: ${problems.join(', ')}. The file name does not match a rulebook, so tap that rulebook in the list and pick the file there instead.`);
   $('ruleStatus').textContent = parts.join(' ');
   $('ruleStatus').hidden = false;
   $('ruleClearBtn').disabled = !ruleStored.size;
@@ -2011,7 +2094,9 @@ function renderRuleList(){
   $('ruleList').innerHTML = entries.map(name=>{
     const icon = name===BASE_RULEBOOK ? baseIcon() : (expIcon(name) || '<span class="rule-no-icon"></span>');
     const have = ruleStored.has(slugOf(name));
-    return `<button class="rule-item${have?'':' missing'}" data-rule="${esc(name)}">${icon}<span>${esc(name)}</span>${have?'':'<span class="rule-tag">Not added</span>'}</button>`;
+    return have
+      ? `<div class="rule-row"><button class="rule-item" data-rule="${esc(name)}">${icon}<span>${esc(expName(name))}</span></button><button class="rule-side" data-add="${esc(name)}" aria-label="Replace the PDF for ${esc(expName(name))}">Replace</button></div>`
+      : `<div class="rule-row"><button class="rule-item missing" data-add="${esc(name)}">${icon}<span>${esc(expName(name))}</span><span class="rule-tag">Tap to add PDF</span></button></div>`;
   }).join('');
   if(ruleOpen && !entries.includes(ruleOpen)) closeRule();
 }
@@ -2046,7 +2131,7 @@ async function openRule(name){
   ruleOpen = name; ruleZoom = 1;
   $('ruleListView').hidden = true;
   $('ruleReader').hidden = false;
-  $('ruleTitle').textContent = name;
+  $('ruleTitle').textContent = expName(name);
   ruleMessage('Loading rulebook…');
   try{
     const lib = await loadPdfLib();
@@ -2150,14 +2235,14 @@ function exportData(){
   CATS.forEach(c=>breakdown.push([c.plural, ...pl.map(p=>T.byPlayer[p.id][c.id])]));
   breakdown.push(['Total', ...pl.map(p=>sum(T.byPlayer[p.id]))]);
   const byExp = [['Expansion', ...pl.map(p=>p.name)]];
-  T.expOrder.forEach(n=>byExp.push([n, ...pl.map(p=>T.byExp[n][p.id]||0)]));
+  T.expOrder.forEach(n=>byExp.push([expName(n), ...pl.map(p=>T.byExp[n][p.id]||0)]));
   const simple = simpleMode();
   const log = [simple ? ['Player','Feature','Expansion','Points'] : ['Turn','Player','Feature','Expansion','Points','Tile played from']];
   const turns = turnNumbers();
   state.entries.forEach((e,i)=>{
     const p = playerById(e.playerId); if(!p) return;
     const what = e.hidden ? (e.stay ? (e.tile ? 'Extra tile' : 'No score, same turn') : 'No score') : catInfo(e.category).label;
-    log.push(simple ? [p.name, what, e.subtype||'', e.points] : [turns[i], p.name, what, e.subtype||'', e.points, e.tile||'']);
+    log.push(simple ? [p.name, what, expName(e.subtype), e.points] : [turns[i], p.name, what, expName(e.subtype), e.points, expName(e.tile)]);
   });
   if(simple) return {breakdown, byExp, log, tiles:null};
   const tp = tilesPlayed();
@@ -2390,7 +2475,14 @@ function bind(){
     const b = e.target.closest('[data-view]'); if(b) setRightView(b.dataset.view);
   };
   $('ruleList').onclick = e=>{
+    const add = e.target.closest('[data-add]'); if(add){ pickRulebookFor(add.dataset.add); return; }
     const b = e.target.closest('[data-rule]'); if(b) openRule(b.dataset.rule);
+  };
+  $('ruleOne').onchange = async e=>{
+    const file = (e.target.files || [])[0];
+    e.target.value = '';
+    if(file && ruleTarget) await addOneRulebook(ruleTarget, file);
+    ruleTarget = null;
   };
   $('ruleBack').onclick = closeRule;
   $('soundBtn').onclick = ()=>{
